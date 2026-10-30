@@ -5,6 +5,8 @@ class CredentialsStorageService {
   static const String _keyEmail = 'saved_email';
   static const String _keyPassword = 'saved_password';
   static const String _keyRememberMe = 'remember_me';
+  static const String _keyAccessToken = 'access_token';
+  static const String _keyRefreshToken = 'refresh_token';
 
   final FlutterSecureStorage _secureStorage;
   final LocalAuthentication _localAuth;
@@ -93,6 +95,34 @@ class CredentialsStorageService {
     await _secureStorage.delete(key: _keyEmail);
     await _secureStorage.delete(key: _keyPassword);
     await _secureStorage.delete(key: _keyRememberMe);
+  }
+
+  // ==================== Métodos para Tokens ====================
+
+  /// Guarda el access token
+  Future<void> saveAccessToken(String token) async {
+    await _secureStorage.write(key: _keyAccessToken, value: token);
+  }
+
+  /// Guarda el refresh token
+  Future<void> saveRefreshToken(String token) async {
+    await _secureStorage.write(key: _keyRefreshToken, value: token);
+  }
+
+  /// Obtiene el access token
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: _keyAccessToken);
+  }
+
+  /// Obtiene el refresh token
+  Future<String?> getRefreshToken() async {
+    return await _secureStorage.read(key: _keyRefreshToken);
+  }
+
+  /// Borra los tokens
+  Future<void> clearTokens() async {
+    await _secureStorage.delete(key: _keyAccessToken);
+    await _secureStorage.delete(key: _keyRefreshToken);
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -29,13 +30,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulación de login - aquí irá la lógica real con la API
-    await Future.delayed(const Duration(seconds: 2));
+    // Llamar al provider de autenticación
+    final success = await ref.read(authProvider.notifier).login(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
 
     setState(() => _isLoading = false);
 
-    if (mounted) {
+    if (!mounted) return;
+
+    if (success) {
+      // Login exitoso, navegar al main
       context.go('/main');
+    } else {
+      // Mostrar error
+      final error = ref.read(authProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Error al iniciar sesión'),
+          backgroundColor: const Color(0xFFdc3545),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
