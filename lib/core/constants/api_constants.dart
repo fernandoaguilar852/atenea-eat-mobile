@@ -5,7 +5,7 @@ class ApiConstants {
 
   // Endpoints de Autenticación
   static const String login = '/login';
-  static const String logout = '/logout';
+  static const String logout = '/login/logout';
   static const String refreshToken = '/refresh-token';
 
   // Endpoints de Dashboard

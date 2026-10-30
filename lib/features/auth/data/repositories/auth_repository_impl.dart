@@ -55,10 +55,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
     try {
-      // Llamar al API para logout
-      await remoteDatasource.logout();
+      // Obtener el refreshToken del storage
+      final refreshToken = await storageService.getRefreshToken();
+
+      // Llamar al API para logout si tenemos refreshToken
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await remoteDatasource.logout(refreshToken);
+      }
     } finally {
-      // Limpiar storage local siempre
+      // Limpiar storage local siempre (incluso si el API falla)
       await storageService.clearTokens();
       await storageService.clearCredentials();
     }

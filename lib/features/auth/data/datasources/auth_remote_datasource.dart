@@ -6,7 +6,7 @@ import '../models/login_response_dto.dart';
 
 abstract class AuthRemoteDatasource {
   Future<LoginResponseDto> login(String email, String password);
-  Future<void> logout();
+  Future<void> logout(String refreshToken);
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
@@ -62,12 +62,15 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout(String refreshToken) async {
     try {
       final messageUuid = uuid.v4();
 
       await dio.post(
         ApiConstants.buildUrl(ApiConstants.logout),
+        data: {
+          'refreshToken': refreshToken,
+        },
         options: Options(
           headers: {
             ApiConstants.headerContentType: 'application/json',
@@ -77,7 +80,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         ),
       );
     } catch (e) {
-      // Ignorar errores de logout
+      // Ignorar errores de logout - siempre limpiamos local
+      // incluso si el servidor falla
     }
   }
 }
