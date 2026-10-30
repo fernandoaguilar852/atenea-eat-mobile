@@ -60,13 +60,26 @@ lib/
 
 ## 🎨 Diseño
 
-Los colores y diseño están basados en la versión web de ATENEA POS:
+### Tema Oscuro Profesional (estilo Instagram)
 
-- **Primario**: `#0d6efd` (Azul)
-- **Éxito**: `#198754` (Verde)
-- **Peligro**: `#dc3545` (Rojo)
-- **Advertencia**: `#ffc107` (Amarillo)
+La app utiliza un **tema oscuro elegante** con fondo negro que hace resaltar los colores vibrantes de los elementos importantes:
+
+**Colores del tema:**
+- **Fondo Principal**: `#000000` (Negro puro)
+- **Superficies/Cards**: `#1a1a1a` (Gris muy oscuro)
+- **Bordes**: `#363636` (Gris oscuro sutil)
+- **Texto Principal**: `#FFFFFF` (Blanco)
+- **Texto Secundario**: `#B0B0B0` (Gris claro)
+- **Texto Terciario**: `#808080` (Gris medio)
+
+**Colores vibrantes** (solo en cards y elementos de acción):
+- **Primario**: `#0d6efd` (Azul) - Mesas
+- **Éxito**: `#198754` (Verde) - Facturación
+- **Advertencia**: `#ffc107` (Amarillo) - Cocina
+- **Peligro**: `#dc3545` (Rojo) - Inventario
 - **Info**: `#0dcaf0` (Cyan)
+
+El contraste entre el fondo negro y los colores vibrantes crea una experiencia visual moderna y profesional, perfecta para destacar imágenes de productos y platos.
 
 ## 🚀 Instalación
 
@@ -117,21 +130,47 @@ Los colores y diseño están basados en la versión web de ATENEA POS:
 - Estado de carga durante login
 - Diseño responsive
 
-### 2. Dashboard Screen (`/dashboard`)
-- Tarjetas de estadísticas
+### 2. Main Screen (`/main`)
+- **Bottom Navigation Bar** con 5 secciones:
+  - Mesas (índice 0)
+  - Órdenes (índice 1)
+  - Dashboard (índice 2 - centro con diseño especial)
+  - Facturación (índice 3)
+  - Inventario (índice 4)
+- **Drawer lateral izquierdo** (menú hamburguesa)
+  - Header con avatar y datos de usuario
+  - Navegación principal
+  - Cerrar sesión con confirmación
+- **Drawer lateral derecho** (notificaciones)
+  - Se abre al hacer clic en el icono de notificaciones
+  - Tabs: Pendientes y Leídas
+  - Indicadores de prioridad (Crítica, Alta, Media, Baja)
+  - Acciones: Marcar como leída / Eliminar
+- **IndexedStack** para preservar el estado de cada pantalla
+
+### 3. Dashboard Screen
+- Tarjetas de estadísticas (Mesas, Facturación, Cocina, Inventario)
 - Actividad reciente
-- Menú lateral (drawer) con navegación
 - Pull to refresh
+- Saludo dinámico según hora del día
 
 ## 🎯 Estado del Proyecto
 
-- ✅ Login funcional (UI completa)
-- ✅ Dashboard con estadísticas (UI completa)
-- ✅ Navegación configurada
-- ✅ Tema de colores aplicado
+- ✅ Login funcional (UI completa con tema oscuro)
+- ✅ Dashboard con estadísticas (UI completa con cards vibrantes)
+- ✅ Navegación con Bottom Navigation Bar (5 secciones)
+- ✅ Drawer lateral izquierdo con menú hamburguesa
+- ✅ Drawer lateral derecho con notificaciones (Pendientes/Leídas)
+- ✅ IndexedStack para preservar estado de pantallas
+- ✅ **Tema oscuro profesional estilo Instagram**
+  - Fondo negro (#000000)
+  - Cards con colores vibrantes
+  - Tipografía optimizada para contraste
+  - Bordes sutiles y modernos
+- ✅ Arquitectura Clean implementada
 - ⏳ Integración con API (pendiente)
 - ⏳ Autenticación real (pendiente)
-- ⏳ Módulos adicionales (pendiente)
+- ⏳ Implementación de módulos: Mesas, Órdenes, Facturación, Inventario (pendiente)
 
 ---
 

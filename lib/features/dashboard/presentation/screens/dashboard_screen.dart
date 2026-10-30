@@ -20,16 +20,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0d6efd),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text('Dashboard'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
           ),
           IconButton(
             icon: const Icon(Icons.account_circle),
@@ -37,7 +39,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ],
       ),
-      drawer: _buildDrawer(),
       body: RefreshIndicator(
         onRefresh: _refreshData,
         child: SingleChildScrollView(
@@ -63,89 +64,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFF0d6efd),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.restaurant_menu,
-                  size: 48.sp,
-                  color: Colors.white,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'ATENEA EAT',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  'Sistema POS',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _DrawerItem(
-            icon: Icons.dashboard,
-            title: 'Dashboard',
-            onTap: () => Navigator.pop(context),
-          ),
-          _DrawerItem(
-            icon: Icons.table_restaurant,
-            title: 'Mesas',
-            onTap: () {},
-          ),
-          _DrawerItem(
-            icon: Icons.restaurant,
-            title: 'Comandas',
-            onTap: () {},
-          ),
-          _DrawerItem(
-            icon: Icons.receipt_long,
-            title: 'Facturación',
-            onTap: () {},
-          ),
-          _DrawerItem(
-            icon: Icons.inventory,
-            title: 'Inventario',
-            onTap: () {},
-          ),
-          _DrawerItem(
-            icon: Icons.assessment,
-            title: 'Reportes',
-            onTap: () {},
-          ),
-          const Divider(),
-          _DrawerItem(
-            icon: Icons.settings,
-            title: 'Configuración',
-            onTap: () {},
-          ),
-          _DrawerItem(
-            icon: Icons.logout,
-            title: 'Cerrar Sesión',
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildGreeting() {
     final hour = DateTime.now().hour;
     String greeting;
@@ -165,7 +83,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           style: TextStyle(
             fontSize: 24.sp,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF212529),
+            color: Colors.white,
           ),
         ),
         SizedBox(height: 4.h),
@@ -173,7 +91,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           'Resumen de operaciones del día',
           style: TextStyle(
             fontSize: 14.sp,
-            color: const Color(0xFF6c757d),
+            color: const Color(0xFFB0B0B0),
           ),
         ),
       ],
@@ -230,21 +148,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF212529),
+            color: Colors.white,
           ),
         ),
         SizedBox(height: 12.h),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF1a1a1a),
             borderRadius: BorderRadius.circular(12.r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(
+              color: const Color(0xFF363636),
+              width: 1,
+            ),
           ),
           child: Column(
             children: [
@@ -300,15 +215,12 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
       ),
       padding: EdgeInsets.all(16.w),
       child: Column(
@@ -323,18 +235,18 @@ class _StatCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF6c757d),
+                  color: const Color(0xFFB0B0B0),
                 ),
               ),
               Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.r),
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   icon,
-                  size: 20.sp,
+                  size: 24.sp,
                   color: color,
                 ),
               ),
@@ -346,9 +258,9 @@ class _StatCard extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF212529),
+                  color: Colors.white,
                 ),
               ),
               SizedBox(height: 2.h),
@@ -356,7 +268,7 @@ class _StatCard extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: const Color(0xFF6c757d),
+                  color: const Color(0xFF808080),
                 ),
               ),
             ],
@@ -386,8 +298,8 @@ class _ActivityItem extends StatelessWidget {
       leading: Container(
         padding: EdgeInsets.all(8.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8.r),
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(10.r),
         ),
         child: Icon(
           icon,
@@ -400,37 +312,17 @@ class _ActivityItem extends StatelessWidget {
         style: TextStyle(
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
-          color: const Color(0xFF212529),
+          color: Colors.white,
         ),
       ),
       subtitle: Text(
         subtitle,
         style: TextStyle(
           fontSize: 12.sp,
-          color: const Color(0xFF6c757d),
+          color: const Color(0xFF808080),
         ),
       ),
     );
   }
 }
 
-class _DrawerItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _DrawerItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      onTap: onTap,
-    );
-  }
-}

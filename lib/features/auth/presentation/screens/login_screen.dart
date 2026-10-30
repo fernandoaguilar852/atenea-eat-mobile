@@ -35,14 +35,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (mounted) {
-      context.go('/dashboard');
+      context.go('/main');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -50,15 +50,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Container(
               constraints: BoxConstraints(maxWidth: 400.w),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xFF1a1a1a),
                 borderRadius: BorderRadius.circular(16.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(
+                  color: const Color(0xFF363636),
+                  width: 1,
+                ),
               ),
               padding: EdgeInsets.all(32.w),
               child: Form(
@@ -78,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(
                         fontSize: 28.sp,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF212529),
+                        color: Colors.white,
                       ),
                     ),
                     SizedBox(height: 8.h),
@@ -86,7 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'Sistema de Gestión para Restaurantes',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: const Color(0xFF6c757d),
+                        color: const Color(0xFFB0B0B0),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -206,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       '© 2026 Atenea POS',
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: const Color(0xFF6c757d),
+                        color: const Color(0xFF808080),
                       ),
                     ),
                   ],

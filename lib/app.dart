@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
-import 'features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'shared/screens/main_screen.dart';
 
 // Configuración del Router
 final routerProvider = Provider<GoRouter>((ref) {
@@ -17,9 +17,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: '/dashboard',
-        name: 'dashboard',
-        builder: (context, state) => const DashboardScreen(),
+        path: '/main',
+        name: 'main',
+        builder: (context, state) => const MainScreen(),
       ),
     ],
   );
@@ -40,7 +40,9 @@ class MyApp extends ConsumerWidget {
         return MaterialApp.router(
           title: 'ATENEA EAT',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
+          theme: AppTheme.darkTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.dark,
           routerConfig: router,
         );
       },

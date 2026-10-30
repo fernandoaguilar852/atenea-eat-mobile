@@ -1,50 +1,76 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Colores principales de ATENEA POS
+  // Colores vibrantes para las cards del dashboard (como en la web)
   static const Color primaryColor = Color(0xFF0d6efd); // Azul principal
-  static const Color secondaryColor = Color(0xFF6c757d); // Gris
   static const Color successColor = Color(0xFF198754); // Verde
   static const Color dangerColor = Color(0xFFdc3545); // Rojo
   static const Color warningColor = Color(0xFFffc107); // Amarillo
   static const Color infoColor = Color(0xFF0dcaf0); // Cyan
 
-  // Colores de fondo
-  static const Color backgroundColor = Color(0xFFF8F9FA);
-  static const Color cardColor = Colors.white;
+  // Tema oscuro profesional estilo Instagram
+  static const Color darkBackground = Color(0xFF000000); // Negro puro
+  static const Color darkSurface = Color(0xFF1a1a1a); // Gris muy oscuro para cards
+  static const Color darkSurfaceVariant = Color(0xFF262626); // Gris oscuro para elementos
+  static const Color darkBorder = Color(0xFF363636); // Borde sutil
 
-  // Colores de texto
-  static const Color textPrimary = Color(0xFF212529);
-  static const Color textSecondary = Color(0xFF6c757d);
+  // Textos en modo oscuro
+  static const Color textPrimary = Color(0xFFFFFFFF); // Blanco
+  static const Color textSecondary = Color(0xFFB0B0B0); // Gris claro
+  static const Color textTertiary = Color(0xFF808080); // Gris medio
 
-  // Tema claro
-  static ThemeData lightTheme = ThemeData(
+  // Tema oscuro profesional estilo Instagram
+  static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
-    brightness: Brightness.light,
+    brightness: Brightness.dark,
     primaryColor: primaryColor,
-    scaffoldBackgroundColor: backgroundColor,
-    colorScheme: const ColorScheme.light(
+    scaffoldBackgroundColor: darkBackground,
+    colorScheme: const ColorScheme.dark(
       primary: primaryColor,
-      secondary: secondaryColor,
-      surface: cardColor,
+      secondary: textSecondary,
+      surface: darkSurface,
       error: dangerColor,
     ),
 
-    // AppBar Theme
+    // AppBar Theme - Negro con borde sutil
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
-      foregroundColor: Colors.white,
+      backgroundColor: darkBackground,
+      foregroundColor: textPrimary,
       elevation: 0,
-      centerTitle: true,
+      centerTitle: false,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: darkBorder,
     ),
 
-    // Card Theme
+    // Card Theme - Gris oscuro con bordes sutiles
     cardTheme: CardTheme(
-      color: cardColor,
-      elevation: 2,
+      color: darkSurface,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: darkBorder, width: 1),
       ),
+    ),
+
+    // Bottom Navigation Bar Theme
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: darkBackground,
+      selectedItemColor: textPrimary,
+      unselectedItemColor: textTertiary,
+      elevation: 0,
+      type: BottomNavigationBarType.fixed,
+    ),
+
+    // Drawer Theme
+    drawerTheme: const DrawerThemeData(
+      backgroundColor: darkBackground,
+      surfaceTintColor: Colors.transparent,
+    ),
+
+    // Divider Theme
+    dividerTheme: const DividerThemeData(
+      color: darkBorder,
+      thickness: 1,
     ),
 
     // Elevated Button Theme
@@ -53,33 +79,43 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
+      ),
+    ),
+
+    // Text Button Theme
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: primaryColor,
       ),
     ),
 
     // Input Decoration Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: darkSurface,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFDEE2E6)),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: darkBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFDEE2E6)),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: darkBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: primaryColor, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: dangerColor),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: const TextStyle(color: textTertiary),
+      labelStyle: const TextStyle(color: textSecondary),
     ),
 
     // Text Theme
@@ -88,16 +124,19 @@ class AppTheme {
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: textPrimary,
+        letterSpacing: -0.5,
       ),
       displayMedium: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: textPrimary,
+        letterSpacing: -0.5,
       ),
       displaySmall: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
         color: textPrimary,
+        letterSpacing: -0.5,
       ),
       headlineMedium: TextStyle(
         fontSize: 20,
@@ -115,12 +154,17 @@ class AppTheme {
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
-        color: textPrimary,
+        color: textSecondary,
       ),
       bodySmall: TextStyle(
         fontSize: 12,
-        color: textSecondary,
+        color: textTertiary,
       ),
+    ),
+
+    // Icon Theme
+    iconTheme: const IconThemeData(
+      color: textPrimary,
     ),
   );
 }
