@@ -64,18 +64,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Logo
-                    Icon(
-                      Icons.restaurant_menu,
-                      size: 80.sp,
-                      color: const Color(0xFF0d6efd),
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 120.w,
+                      height: 120.w,
+                      fit: BoxFit.contain,
                     ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: 16.h),
                     Text(
                       'ATENEA EAT',
                       style: TextStyle(
                         fontSize: 28.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     SizedBox(height: 8.h),
