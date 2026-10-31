@@ -12,9 +12,10 @@ import '../../domain/entities/stock_productos_reporte.dart';
 import '../../domain/entities/stock_insumos_reporte.dart';
 import '../../domain/entities/costo_beneficio_reporte.dart';
 import '../../domain/entities/producto.dart';
-import '../../domain/entities/productos_response.dart';
 import '../../domain/entities/consumidor.dart';
-import '../../domain/entities/consumidores_response.dart';
+import '../../domain/entities/tipo_producto.dart';
+import '../../domain/entities/caja.dart';
+import '../../domain/entities/operador.dart';
 
 // Provider del datasource
 final reportesRemoteDatasourceProvider = Provider<ReportesRemoteDatasource>((ref) {
@@ -67,6 +68,26 @@ final searchProductosUseCaseProvider = Provider((ref) {
 final searchConsumidoresUseCaseProvider = Provider((ref) {
   final repository = ref.watch(reportesRepositoryProvider);
   return SearchConsumidoresUseCase(repository);
+});
+
+final getTiposProductoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return GetTiposProductoUseCase(repository);
+});
+
+final getCajasUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return GetCajasUseCase(repository);
+});
+
+final getUsuarioUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return GetUsuarioUseCase(repository);
+});
+
+final getOperadoresUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return GetOperadoresUseCase(repository);
 });
 
 // Estado de reportes
@@ -586,6 +607,270 @@ final consumidoresSearchProvider = StateNotifierProvider<ConsumidoresSearchNotif
 
   return ConsumidoresSearchNotifier(
     searchConsumidoresUseCase: ref.watch(searchConsumidoresUseCaseProvider),
+    clienteId: clienteId,
+  );
+});
+
+// Estado para tipos de producto
+class TiposProductoState {
+  final List<TipoProducto> tiposProducto;
+  final bool isLoading;
+  final String? error;
+  final TipoProducto? selectedTipo;
+
+  TiposProductoState({
+    this.tiposProducto = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedTipo,
+  });
+
+  TiposProductoState copyWith({
+    List<TipoProducto>? tiposProducto,
+    bool? isLoading,
+    String? error,
+    TipoProducto? selectedTipo,
+    bool clearSelected = false,
+  }) {
+    return TiposProductoState(
+      tiposProducto: tiposProducto ?? this.tiposProducto,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedTipo: clearSelected ? null : (selectedTipo ?? this.selectedTipo),
+    );
+  }
+}
+
+// Notifier para tipos de producto
+class TiposProductoNotifier extends StateNotifier<TiposProductoState> {
+  final GetTiposProductoUseCase getTiposProductoUseCase;
+  final int clienteId;
+
+  TiposProductoNotifier({
+    required this.getTiposProductoUseCase,
+    required this.clienteId,
+  }) : super(TiposProductoState()) {
+    // Cargar tipos de producto al iniciar
+    loadTiposProducto();
+  }
+
+  Future<void> loadTiposProducto() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final tiposProducto = await getTiposProductoUseCase(
+        clienteId: clienteId,
+        activo: true,
+      );
+
+      state = state.copyWith(
+        tiposProducto: tiposProducto,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectTipo(TipoProducto? tipo) {
+    state = state.copyWith(
+      selectedTipo: tipo,
+      clearSelected: tipo == null,
+    );
+  }
+}
+
+// Provider del StateNotifier para tipos de producto
+final tiposProductoProvider = StateNotifierProvider<TiposProductoNotifier, TiposProductoState>((ref) {
+  final authState = ref.watch(authProvider);
+  final clienteId = authState.user?.clienteId ?? 0;
+
+  return TiposProductoNotifier(
+    getTiposProductoUseCase: ref.watch(getTiposProductoUseCaseProvider),
+    clienteId: clienteId,
+  );
+});
+
+// Estado para cajas
+class CajasState {
+  final List<Caja> cajas;
+  final bool isLoading;
+  final String? error;
+  final Caja? selectedCaja;
+
+  CajasState({
+    this.cajas = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedCaja,
+  });
+
+  CajasState copyWith({
+    List<Caja>? cajas,
+    bool? isLoading,
+    String? error,
+    Caja? selectedCaja,
+    bool clearSelected = false,
+  }) {
+    return CajasState(
+      cajas: cajas ?? this.cajas,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedCaja: clearSelected ? null : (selectedCaja ?? this.selectedCaja),
+    );
+  }
+}
+
+// Notifier para cajas
+class CajasNotifier extends StateNotifier<CajasState> {
+  final GetCajasUseCase getCajasUseCase;
+  final GetUsuarioUseCase getUsuarioUseCase;
+  final int clienteId;
+
+  CajasNotifier({
+    required this.getCajasUseCase,
+    required this.getUsuarioUseCase,
+    required this.clienteId,
+  }) : super(CajasState()) {
+    // Cargar cajas al iniciar
+    loadCajas();
+  }
+
+  Future<void> loadCajas() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final cajas = await getCajasUseCase(
+        clienteId: clienteId,
+      );
+
+      // Para cada caja, obtener el nombre del usuario
+      for (var caja in cajas) {
+        try {
+          final usuario = await getUsuarioUseCase(
+            usuarioId: caja.usuarioId,
+            clienteId: clienteId,
+          );
+          caja.nombreUsuario = usuario.nombre;
+        } catch (e) {
+          // Si falla obtener el usuario, dejarlo como null
+          caja.nombreUsuario = null;
+        }
+      }
+
+      state = state.copyWith(
+        cajas: cajas,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectCaja(Caja? caja) {
+    state = state.copyWith(
+      selectedCaja: caja,
+      clearSelected: caja == null,
+    );
+  }
+}
+
+// Provider del StateNotifier para cajas
+final cajasProvider = StateNotifierProvider<CajasNotifier, CajasState>((ref) {
+  final authState = ref.watch(authProvider);
+  final clienteId = authState.user?.clienteId ?? 0;
+
+  return CajasNotifier(
+    getCajasUseCase: ref.watch(getCajasUseCaseProvider),
+    getUsuarioUseCase: ref.watch(getUsuarioUseCaseProvider),
+    clienteId: clienteId,
+  );
+});
+
+// Estado para operadores
+class OperadoresState {
+  final List<Operador> operadores;
+  final bool isLoading;
+  final String? error;
+  final Operador? selectedOperador;
+
+  OperadoresState({
+    this.operadores = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedOperador,
+  });
+
+  OperadoresState copyWith({
+    List<Operador>? operadores,
+    bool? isLoading,
+    String? error,
+    Operador? selectedOperador,
+    bool clearSelected = false,
+  }) {
+    return OperadoresState(
+      operadores: operadores ?? this.operadores,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedOperador: clearSelected ? null : (selectedOperador ?? this.selectedOperador),
+    );
+  }
+}
+
+// Notifier para operadores
+class OperadoresNotifier extends StateNotifier<OperadoresState> {
+  final GetOperadoresUseCase getOperadoresUseCase;
+  final int clienteId;
+
+  OperadoresNotifier({
+    required this.getOperadoresUseCase,
+    required this.clienteId,
+  }) : super(OperadoresState()) {
+    // Cargar operadores al iniciar
+    loadOperadores();
+  }
+
+  Future<void> loadOperadores() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final operadores = await getOperadoresUseCase(
+        clienteId: clienteId,
+      );
+
+      state = state.copyWith(
+        operadores: operadores,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectOperador(Operador? operador) {
+    state = state.copyWith(
+      selectedOperador: operador,
+      clearSelected: operador == null,
+    );
+  }
+}
+
+// Provider del StateNotifier para operadores
+final operadoresProvider = StateNotifierProvider<OperadoresNotifier, OperadoresState>((ref) {
+  final authState = ref.watch(authProvider);
+  final clienteId = authState.user?.clienteId ?? 0;
+
+  return OperadoresNotifier(
+    getOperadoresUseCase: ref.watch(getOperadoresUseCaseProvider),
     clienteId: clienteId,
   );
 });

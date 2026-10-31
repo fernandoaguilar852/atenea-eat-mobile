@@ -6,6 +6,10 @@ import '../entities/stock_insumos_reporte.dart';
 import '../entities/costo_beneficio_reporte.dart';
 import '../entities/productos_response.dart';
 import '../entities/consumidores_response.dart';
+import '../entities/tipo_producto.dart';
+import '../entities/caja.dart';
+import '../entities/usuario.dart';
+import '../entities/operador.dart';
 import '../repositories/reportes_repository.dart';
 
 /// Use case para obtener reporte de ventas
@@ -214,6 +218,82 @@ class SearchConsumidoresUseCase {
     return repository.searchConsumidores(
       clienteId: clienteId,
       search: search,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
+    );
+  }
+}
+
+/// Use case para obtener tipos de producto
+class GetTiposProductoUseCase {
+  final ReportesRepository repository;
+
+  GetTiposProductoUseCase(this.repository);
+
+  Future<List<TipoProducto>> call({
+    required int clienteId,
+    bool activo = true,
+    int pageSize = 100,
+    int pageNumber = 1,
+  }) {
+    return repository.getTiposProducto(
+      clienteId: clienteId,
+      activo: activo,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
+    );
+  }
+}
+
+/// Use case para obtener cajas
+class GetCajasUseCase {
+  final ReportesRepository repository;
+
+  GetCajasUseCase(this.repository);
+
+  Future<List<Caja>> call({
+    required int clienteId,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) {
+    return repository.getCajas(
+      clienteId: clienteId,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
+    );
+  }
+}
+
+/// Use case para obtener usuario
+class GetUsuarioUseCase {
+  final ReportesRepository repository;
+
+  GetUsuarioUseCase(this.repository);
+
+  Future<Usuario> call({
+    required int usuarioId,
+    required int clienteId,
+  }) {
+    return repository.getUsuario(
+      usuarioId: usuarioId,
+      clienteId: clienteId,
+    );
+  }
+}
+
+/// Use case para obtener operadores
+class GetOperadoresUseCase {
+  final ReportesRepository repository;
+
+  GetOperadoresUseCase(this.repository);
+
+  Future<List<Operador>> call({
+    required int clienteId,
+    int pageSize = 100,
+    int pageNumber = 1,
+  }) {
+    return repository.getOperadores(
+      clienteId: clienteId,
       pageSize: pageSize,
       pageNumber: pageNumber,
     );

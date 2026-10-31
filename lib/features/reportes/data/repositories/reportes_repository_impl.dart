@@ -6,6 +6,10 @@ import '../../domain/entities/stock_insumos_reporte.dart';
 import '../../domain/entities/costo_beneficio_reporte.dart';
 import '../../domain/entities/productos_response.dart';
 import '../../domain/entities/consumidores_response.dart';
+import '../../domain/entities/tipo_producto.dart';
+import '../../domain/entities/caja.dart';
+import '../../domain/entities/usuario.dart';
+import '../../domain/entities/operador.dart';
 import '../../domain/repositories/reportes_repository.dart';
 import '../datasources/reportes_remote_datasource.dart';
 
@@ -213,6 +217,78 @@ class ReportesRepositoryImpl implements ReportesRepository {
         pageNumber: pageNumber,
       );
       return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<TipoProducto>> getTiposProducto({
+    required int clienteId,
+    bool activo = true,
+    int pageSize = 100,
+    int pageNumber = 1,
+  }) async {
+    try {
+      final dto = await remoteDatasource.getTiposProducto(
+        clienteId: clienteId,
+        activo: activo,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
+      );
+      return dto.toEntities();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Caja>> getCajas({
+    required int clienteId,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) async {
+    try {
+      final dto = await remoteDatasource.getCajas(
+        clienteId: clienteId,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
+      );
+      return dto.toEntities();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Usuario> getUsuario({
+    required int usuarioId,
+    required int clienteId,
+  }) async {
+    try {
+      final dto = await remoteDatasource.getUsuario(
+        usuarioId: usuarioId,
+        clienteId: clienteId,
+      );
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Operador>> getOperadores({
+    required int clienteId,
+    int pageSize = 100,
+    int pageNumber = 1,
+  }) async {
+    try {
+      final dto = await remoteDatasource.getOperadores(
+        clienteId: clienteId,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
+      );
+      return dto.toEntities();
     } catch (e) {
       rethrow;
     }

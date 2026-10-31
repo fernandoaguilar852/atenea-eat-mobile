@@ -8,6 +8,10 @@ import '../models/stock_insumos_reporte_dto.dart';
 import '../models/costo_beneficio_reporte_dto.dart';
 import '../models/producto_dto.dart';
 import '../models/consumidor_dto.dart';
+import '../models/tipo_producto_dto.dart';
+import '../models/caja_dto.dart';
+import '../models/usuario_dto.dart';
+import '../models/operador_dto.dart';
 
 abstract class ReportesRemoteDatasource {
   Future<VentasReporteResponseDto> getReporteVentas({
@@ -85,6 +89,30 @@ abstract class ReportesRemoteDatasource {
     required int clienteId,
     required String search,
     int pageSize = 10,
+    int pageNumber = 1,
+  });
+
+  Future<TiposProductoResponseDto> getTiposProducto({
+    required int clienteId,
+    bool activo = true,
+    int pageSize = 100,
+    int pageNumber = 1,
+  });
+
+  Future<CajasResponseDto> getCajas({
+    required int clienteId,
+    int pageSize = 10,
+    int pageNumber = 1,
+  });
+
+  Future<UsuarioDto> getUsuario({
+    required int usuarioId,
+    required int clienteId,
+  });
+
+  Future<OperadoresResponseDto> getOperadores({
+    required int clienteId,
+    int pageSize = 100,
     int pageNumber = 1,
   });
 }
@@ -420,6 +448,101 @@ class ReportesRemoteDatasourceImpl implements ReportesRemoteDatasource {
       return ConsumidoresResponseDto.fromJson(response.data);
     } else {
       throw Exception('Error al buscar consumidores - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<TiposProductoResponseDto> getTiposProducto({
+    required int clienteId,
+    bool activo = true,
+    int pageSize = 100,
+    int pageNumber = 1,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      'clienteId': clienteId,
+      'activo': activo,
+      'pageSize': pageSize,
+      'pageNumber': pageNumber,
+    };
+
+    final response = await dio.get(
+      ApiConstants.buildUrl(ApiConstants.tiposProducto),
+      queryParameters: queryParameters,
+    );
+
+    if (response.statusCode == 200) {
+      return TiposProductoResponseDto.fromJson(response.data);
+    } else {
+      throw Exception('Error al obtener tipos de producto - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<CajasResponseDto> getCajas({
+    required int clienteId,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      'clienteId': clienteId,
+      'pageSize': pageSize,
+      'pageNumber': pageNumber,
+    };
+
+    final response = await dio.get(
+      ApiConstants.buildUrl(ApiConstants.cajas),
+      queryParameters: queryParameters,
+    );
+
+    if (response.statusCode == 200) {
+      return CajasResponseDto.fromJson(response.data);
+    } else {
+      throw Exception('Error al obtener cajas - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<UsuarioDto> getUsuario({
+    required int usuarioId,
+    required int clienteId,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      'clienteId': clienteId,
+    };
+
+    final response = await dio.get(
+      ApiConstants.buildUrl('${ApiConstants.usuarios}/$usuarioId'),
+      queryParameters: queryParameters,
+    );
+
+    if (response.statusCode == 200) {
+      return UsuarioDto.fromJson(response.data['data']);
+    } else {
+      throw Exception('Error al obtener usuario - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<OperadoresResponseDto> getOperadores({
+    required int clienteId,
+    int pageSize = 100,
+    int pageNumber = 1,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      'clienteId': clienteId,
+      'pageSize': pageSize,
+      'pageNumber': pageNumber,
+    };
+
+    final response = await dio.get(
+      ApiConstants.buildUrl(ApiConstants.operadores),
+      queryParameters: queryParameters,
+    );
+
+    if (response.statusCode == 200) {
+      return OperadoresResponseDto.fromJson(response.data);
+    } else {
+      throw Exception('Error al obtener operadores - Status: ${response.statusCode}');
     }
   }
 }

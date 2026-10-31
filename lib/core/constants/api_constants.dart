@@ -27,9 +27,19 @@ class ApiConstants {
 
   // Endpoints de Productos
   static const String products = '/products';
+  static const String tiposProducto = '/tipos-producto';
 
   // Endpoints de Consumidores
   static const String consumidores = '/consumidores';
+
+  // Endpoints de Cajas
+  static const String cajas = '/cajas';
+
+  // Endpoints de Usuarios
+  static const String usuarios = '/usuarios';
+
+  // Endpoints de Operadores
+  static const String operadores = '/operadores';
 
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
