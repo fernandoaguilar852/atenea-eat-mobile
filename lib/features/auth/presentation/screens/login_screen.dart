@@ -87,17 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 120.w,
                       fit: BoxFit.contain,
                     ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'ATENEA EAT',
-                      style: TextStyle(
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: 24.h),
                     Text(
                       'Sistema de Gestión para Restaurantes',
                       style: TextStyle(
