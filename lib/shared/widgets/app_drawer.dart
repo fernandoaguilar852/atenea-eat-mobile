@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+
     return Drawer(
       child: Column(
         children: [
@@ -53,7 +57,7 @@ class AppDrawer extends ConsumerWidget {
                 SizedBox(height: 12.h),
                 // User name
                 Text(
-                  'Usuario Demo',
+                  user?.nombre ?? 'Usuario',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18.sp,
@@ -63,7 +67,7 @@ class AppDrawer extends ConsumerWidget {
                 SizedBox(height: 4.h),
                 // Email
                 Text(
-                  'demo@atenea.com',
+                  user?.email ?? '',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14.sp,

@@ -28,11 +28,13 @@ class MainScreen extends ConsumerWidget {
         centerTitle: true,
         title: Text(titles[currentIndex]),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                Scaffold.of(context).openEndDrawer();
+              },
+            ),
           ),
           if (currentIndex == 4) // Chat IA
             IconButton(
