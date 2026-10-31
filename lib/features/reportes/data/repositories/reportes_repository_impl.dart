@@ -4,6 +4,8 @@ import '../../domain/entities/arqueo_reporte.dart';
 import '../../domain/entities/stock_productos_reporte.dart';
 import '../../domain/entities/stock_insumos_reporte.dart';
 import '../../domain/entities/costo_beneficio_reporte.dart';
+import '../../domain/entities/productos_response.dart';
+import '../../domain/entities/consumidores_response.dart';
 import '../../domain/repositories/reportes_repository.dart';
 import '../datasources/reportes_remote_datasource.dart';
 
@@ -167,6 +169,46 @@ class ReportesRepositoryImpl implements ReportesRepository {
         productoId: productoId,
         tipoProductoId: tipoProductoId,
         activo: activo,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
+      );
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ProductosResponse> searchProductos({
+    required int clienteId,
+    required String search,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) async {
+    try {
+      final dto = await remoteDatasource.searchProductos(
+        clienteId: clienteId,
+        search: search,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
+      );
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ConsumidoresResponse> searchConsumidores({
+    required int clienteId,
+    required String search,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) async {
+    try {
+      final dto = await remoteDatasource.searchConsumidores(
+        clienteId: clienteId,
+        search: search,
         pageSize: pageSize,
         pageNumber: pageNumber,
       );

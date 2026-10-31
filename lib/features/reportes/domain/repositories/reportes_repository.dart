@@ -4,6 +4,8 @@ import '../entities/arqueo_reporte.dart';
 import '../entities/stock_productos_reporte.dart';
 import '../entities/stock_insumos_reporte.dart';
 import '../entities/costo_beneficio_reporte.dart';
+import '../entities/productos_response.dart';
+import '../entities/consumidores_response.dart';
 
 abstract class ReportesRepository {
   Future<VentasReporte> getReporteVentas({
@@ -68,5 +70,19 @@ abstract class ReportesRepository {
     String? activo,
     required int pageSize,
     required int pageNumber,
+  });
+
+  Future<ProductosResponse> searchProductos({
+    required int clienteId,
+    required String search,
+    int pageSize = 10,
+    int pageNumber = 1,
+  });
+
+  Future<ConsumidoresResponse> searchConsumidores({
+    required int clienteId,
+    required String search,
+    int pageSize = 10,
+    int pageNumber = 1,
   });
 }

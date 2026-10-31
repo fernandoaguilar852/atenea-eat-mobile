@@ -99,6 +99,15 @@ class _VentasTab extends ConsumerStatefulWidget {
 class _VentasTabState extends ConsumerState<_VentasTab> {
   DateTime? _startDate;
   DateTime? _endDate;
+  final TextEditingController _productSearchController = TextEditingController();
+  final TextEditingController _consumidorSearchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _productSearchController.dispose();
+    _consumidorSearchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,9 +279,369 @@ class _VentasTabState extends ConsumerState<_VentasTab> {
                 }
               },
             ),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
+
+            // Búsqueda de productos
+            _buildProductSearch(),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
+
+            // Búsqueda de consumidor
+            _buildConsumidorSearch(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProductSearch() {
+    final productosState = ref.watch(productosSearchProvider);
+    final selectedProducto = productosState.selectedProducto;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Buscar Producto',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14.sp,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        if (selectedProducto != null)
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0d6efd).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFF0d6efd),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedProducto.nombre,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Código: ${selectedProducto.codExterno}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    ref.read(productosSearchProvider.notifier).selectProducto(null);
+                    _productSearchController.clear();
+                  },
+                ),
+              ],
+            ),
+          )
+        else
+          TextField(
+            controller: _productSearchController,
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            decoration: InputDecoration(
+              hintText: 'Escribe al menos 3 caracteres...',
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 14.sp,
+              ),
+              prefixIcon: const Icon(Icons.search, color: Colors.white),
+              suffixIcon: productosState.isLoading
+                  ? Padding(
+                      padding: EdgeInsets.all(12.w),
+                      child: SizedBox(
+                        width: 20.w,
+                        height: 20.h,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF0d6efd),
+                        ),
+                      ),
+                    )
+                  : _productSearchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () {
+                            _productSearchController.clear();
+                            ref.read(productosSearchProvider.notifier).clearSearch();
+                          },
+                        )
+                      : null,
+              filled: true,
+              fillColor: const Color(0xFF2d2d2d),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0d6efd),
+                  width: 2,
+                ),
+              ),
+            ),
+            onChanged: (value) {
+              if (value.length >= 3) {
+                ref.read(productosSearchProvider.notifier).searchProductos(value);
+              } else {
+                ref.read(productosSearchProvider.notifier).clearSearch();
+              }
+            },
+          ),
+
+        // Resultados de búsqueda
+        if (productosState.productos.isNotEmpty && selectedProducto == null) ...[
+          SizedBox(height: 8.h),
+          Container(
+            constraints: BoxConstraints(maxHeight: 200.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2d2d2d),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: productosState.productos.length,
+              separatorBuilder: (context, index) => Divider(
+                color: Colors.white.withValues(alpha: 0.1),
+                height: 1,
+              ),
+              itemBuilder: (context, index) {
+                final producto = productosState.productos[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  title: Text(
+                    producto.nombre,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Código: ${producto.codExterno} - Precio: \$${producto.precio.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                  onTap: () {
+                    ref.read(productosSearchProvider.notifier).selectProducto(producto);
+                    _productSearchController.text = producto.nombre;
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildConsumidorSearch() {
+    final consumidoresState = ref.watch(consumidoresSearchProvider);
+    final selectedConsumidor = consumidoresState.selectedConsumidor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Buscar Consumidor',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14.sp,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        if (selectedConsumidor != null)
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0d6efd).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFF0d6efd),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedConsumidor.nombreRazonSocial,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '${selectedConsumidor.tipoIdentificacion}: ${selectedConsumidor.numeroIdentificacion}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    ref.read(consumidoresSearchProvider.notifier).selectConsumidor(null);
+                    _consumidorSearchController.clear();
+                  },
+                ),
+              ],
+            ),
+          )
+        else
+          TextField(
+            controller: _consumidorSearchController,
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            decoration: InputDecoration(
+              hintText: 'Escribe al menos 3 caracteres...',
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 14.sp,
+              ),
+              prefixIcon: const Icon(Icons.search, color: Colors.white),
+              suffixIcon: consumidoresState.isLoading
+                  ? Padding(
+                      padding: EdgeInsets.all(12.w),
+                      child: SizedBox(
+                        width: 20.w,
+                        height: 20.h,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF0d6efd),
+                        ),
+                      ),
+                    )
+                  : _consumidorSearchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () {
+                            _consumidorSearchController.clear();
+                            ref.read(consumidoresSearchProvider.notifier).clearSearch();
+                          },
+                        )
+                      : null,
+              filled: true,
+              fillColor: const Color(0xFF2d2d2d),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0d6efd),
+                  width: 2,
+                ),
+              ),
+            ),
+            onChanged: (value) {
+              if (value.length >= 3) {
+                ref.read(consumidoresSearchProvider.notifier).searchConsumidores(value);
+              } else {
+                ref.read(consumidoresSearchProvider.notifier).clearSearch();
+              }
+            },
+          ),
+
+        // Resultados de búsqueda
+        if (consumidoresState.consumidores.isNotEmpty && selectedConsumidor == null) ...[
+          SizedBox(height: 8.h),
+          Container(
+            constraints: BoxConstraints(maxHeight: 200.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2d2d2d),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: consumidoresState.consumidores.length,
+              separatorBuilder: (context, index) => Divider(
+                color: Colors.white.withValues(alpha: 0.1),
+                height: 1,
+              ),
+              itemBuilder: (context, index) {
+                final consumidor = consumidoresState.consumidores[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  title: Text(
+                    consumidor.nombreRazonSocial,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${consumidor.tipoIdentificacion}: ${consumidor.numeroIdentificacion}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                  onTap: () {
+                    ref.read(consumidoresSearchProvider.notifier).selectConsumidor(consumidor);
+                    _consumidorSearchController.text = consumidor.nombreRazonSocial;
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -281,10 +650,16 @@ class _VentasTabState extends ConsumerState<_VentasTab> {
 
     final startDateStr = _startDate!.toIso8601String().split('T')[0];
     final endDateStr = _endDate!.toIso8601String().split('T')[0];
+    final productosState = ref.read(productosSearchProvider);
+    final productoId = productosState.selectedProducto?.productoId;
+    final consumidoresState = ref.read(consumidoresSearchProvider);
+    final consumidorId = consumidoresState.selectedConsumidor?.consumidorId;
 
     ref.read(reportesProvider.notifier).loadReporteVentas(
           startDate: startDateStr,
           endDate: endDateStr,
+          productoId: productoId,
+          consumidorId: consumidorId,
         );
   }
 

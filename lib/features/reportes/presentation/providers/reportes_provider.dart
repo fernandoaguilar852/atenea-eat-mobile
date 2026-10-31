@@ -11,6 +11,10 @@ import '../../domain/entities/arqueo_reporte.dart';
 import '../../domain/entities/stock_productos_reporte.dart';
 import '../../domain/entities/stock_insumos_reporte.dart';
 import '../../domain/entities/costo_beneficio_reporte.dart';
+import '../../domain/entities/producto.dart';
+import '../../domain/entities/productos_response.dart';
+import '../../domain/entities/consumidor.dart';
+import '../../domain/entities/consumidores_response.dart';
 
 // Provider del datasource
 final reportesRemoteDatasourceProvider = Provider<ReportesRemoteDatasource>((ref) {
@@ -53,6 +57,16 @@ final getReporteStockInsumosUseCaseProvider = Provider((ref) {
 final getReporteCostoBeneficioUseCaseProvider = Provider((ref) {
   final repository = ref.watch(reportesRepositoryProvider);
   return GetReporteCostoBeneficioUseCase(repository);
+});
+
+final searchProductosUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return SearchProductosUseCase(repository);
+});
+
+final searchConsumidoresUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return SearchConsumidoresUseCase(repository);
 });
 
 // Estado de reportes
@@ -394,6 +408,184 @@ final reportesProvider = StateNotifierProvider<ReportesNotifier, ReportesState>(
     getReporteStockProductosUseCase: ref.watch(getReporteStockProductosUseCaseProvider),
     getReporteStockInsumosUseCase: ref.watch(getReporteStockInsumosUseCaseProvider),
     getReporteCostoBeneficioUseCase: ref.watch(getReporteCostoBeneficioUseCaseProvider),
+    clienteId: clienteId,
+  );
+});
+
+// Estado para búsqueda de productos
+class ProductosSearchState {
+  final List<Producto> productos;
+  final bool isLoading;
+  final String? error;
+  final Producto? selectedProducto;
+
+  ProductosSearchState({
+    this.productos = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedProducto,
+  });
+
+  ProductosSearchState copyWith({
+    List<Producto>? productos,
+    bool? isLoading,
+    String? error,
+    Producto? selectedProducto,
+    bool clearSelected = false,
+  }) {
+    return ProductosSearchState(
+      productos: productos ?? this.productos,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedProducto: clearSelected ? null : (selectedProducto ?? this.selectedProducto),
+    );
+  }
+}
+
+// Notifier para búsqueda de productos
+class ProductosSearchNotifier extends StateNotifier<ProductosSearchState> {
+  final SearchProductosUseCase searchProductosUseCase;
+  final int clienteId;
+
+  ProductosSearchNotifier({
+    required this.searchProductosUseCase,
+    required this.clienteId,
+  }) : super(ProductosSearchState());
+
+  Future<void> searchProductos(String query) async {
+    if (query.length < 3) {
+      state = ProductosSearchState();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await searchProductosUseCase(
+        clienteId: clienteId,
+        search: query,
+      );
+
+      state = state.copyWith(
+        productos: response.products,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectProducto(Producto? producto) {
+    state = state.copyWith(
+      selectedProducto: producto,
+      clearSelected: producto == null,
+    );
+  }
+
+  void clearSearch() {
+    state = ProductosSearchState();
+  }
+}
+
+// Provider del StateNotifier para búsqueda de productos
+final productosSearchProvider = StateNotifierProvider<ProductosSearchNotifier, ProductosSearchState>((ref) {
+  final authState = ref.watch(authProvider);
+  final clienteId = authState.user?.clienteId ?? 0;
+
+  return ProductosSearchNotifier(
+    searchProductosUseCase: ref.watch(searchProductosUseCaseProvider),
+    clienteId: clienteId,
+  );
+});
+
+// Estado para búsqueda de consumidores
+class ConsumidoresSearchState {
+  final List<Consumidor> consumidores;
+  final bool isLoading;
+  final String? error;
+  final Consumidor? selectedConsumidor;
+
+  ConsumidoresSearchState({
+    this.consumidores = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedConsumidor,
+  });
+
+  ConsumidoresSearchState copyWith({
+    List<Consumidor>? consumidores,
+    bool? isLoading,
+    String? error,
+    Consumidor? selectedConsumidor,
+    bool clearSelected = false,
+  }) {
+    return ConsumidoresSearchState(
+      consumidores: consumidores ?? this.consumidores,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedConsumidor: clearSelected ? null : (selectedConsumidor ?? this.selectedConsumidor),
+    );
+  }
+}
+
+// Notifier para búsqueda de consumidores
+class ConsumidoresSearchNotifier extends StateNotifier<ConsumidoresSearchState> {
+  final SearchConsumidoresUseCase searchConsumidoresUseCase;
+  final int clienteId;
+
+  ConsumidoresSearchNotifier({
+    required this.searchConsumidoresUseCase,
+    required this.clienteId,
+  }) : super(ConsumidoresSearchState());
+
+  Future<void> searchConsumidores(String query) async {
+    if (query.length < 3) {
+      state = ConsumidoresSearchState();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await searchConsumidoresUseCase(
+        clienteId: clienteId,
+        search: query,
+      );
+
+      state = state.copyWith(
+        consumidores: response.consumidores,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectConsumidor(Consumidor? consumidor) {
+    state = state.copyWith(
+      selectedConsumidor: consumidor,
+      clearSelected: consumidor == null,
+    );
+  }
+
+  void clearSearch() {
+    state = ConsumidoresSearchState();
+  }
+}
+
+// Provider del StateNotifier para búsqueda de consumidores
+final consumidoresSearchProvider = StateNotifierProvider<ConsumidoresSearchNotifier, ConsumidoresSearchState>((ref) {
+  final authState = ref.watch(authProvider);
+  final clienteId = authState.user?.clienteId ?? 0;
+
+  return ConsumidoresSearchNotifier(
+    searchConsumidoresUseCase: ref.watch(searchConsumidoresUseCaseProvider),
     clienteId: clienteId,
   );
 });

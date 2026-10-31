@@ -4,6 +4,8 @@ import '../entities/arqueo_reporte.dart';
 import '../entities/stock_productos_reporte.dart';
 import '../entities/stock_insumos_reporte.dart';
 import '../entities/costo_beneficio_reporte.dart';
+import '../entities/productos_response.dart';
+import '../entities/consumidores_response.dart';
 import '../repositories/reportes_repository.dart';
 
 /// Use case para obtener reporte de ventas
@@ -170,6 +172,48 @@ class GetReporteCostoBeneficioUseCase {
       productoId: productoId,
       tipoProductoId: tipoProductoId,
       activo: activo,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
+    );
+  }
+}
+
+/// Use case para buscar productos
+class SearchProductosUseCase {
+  final ReportesRepository repository;
+
+  SearchProductosUseCase(this.repository);
+
+  Future<ProductosResponse> call({
+    required int clienteId,
+    required String search,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) {
+    return repository.searchProductos(
+      clienteId: clienteId,
+      search: search,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
+    );
+  }
+}
+
+/// Use case para buscar consumidores
+class SearchConsumidoresUseCase {
+  final ReportesRepository repository;
+
+  SearchConsumidoresUseCase(this.repository);
+
+  Future<ConsumidoresResponse> call({
+    required int clienteId,
+    required String search,
+    int pageSize = 10,
+    int pageNumber = 1,
+  }) {
+    return repository.searchConsumidores(
+      clienteId: clienteId,
+      search: search,
       pageSize: pageSize,
       pageNumber: pageNumber,
     );

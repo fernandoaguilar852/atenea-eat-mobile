@@ -25,6 +25,12 @@ class ApiConstants {
   // Endpoints de Notificaciones
   static const String notificaciones = '/notificaciones';
 
+  // Endpoints de Productos
+  static const String products = '/products';
+
+  // Endpoints de Consumidores
+  static const String consumidores = '/consumidores';
+
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
   static const String headerMessageUuid = 'message-uuid';
