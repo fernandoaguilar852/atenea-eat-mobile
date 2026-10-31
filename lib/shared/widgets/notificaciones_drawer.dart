@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../../features/notificaciones/presentation/providers/notificaciones_provider.dart';
 
 class NotificacionesDrawer extends ConsumerStatefulWidget {
   const NotificacionesDrawer({super.key});
@@ -19,6 +20,16 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    // Cargar notificaciones pendientes al iniciar
+    Future.microtask(() => ref.read(notificacionesProvider.notifier).loadNotificaciones());
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+
+    final nuevoEstado = _tabController.index == 0 ? 'PENDIENTE' : 'LEIDA';
+    ref.read(notificacionesProvider.notifier).cambiarFiltro(nuevoEstado);
   }
 
   @override
@@ -29,6 +40,9 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
 
   @override
   Widget build(BuildContext context) {
+    final notificacionesState = ref.watch(notificacionesProvider);
+    final totalNotificaciones = notificacionesState.notificaciones.length;
+
     return Drawer(
       child: Column(
         children: [
@@ -72,7 +86,7 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  '3 ${_tabController.index == 0 ? "pendientes" : "leídas"}',
+                  '$totalNotificaciones ${_tabController.index == 0 ? "pendientes" : "leídas"}',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 14.sp,
@@ -94,8 +108,8 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
                     fontSize: 14.sp,
                   ),
                   tabs: const [
-                    Tab(text: 'Pendientes (3)'),
-                    Tab(text: 'Leídas (5)'),
+                    Tab(text: 'Pendientes'),
+                    Tab(text: 'Leídas'),
                   ],
                 ),
               ],
@@ -108,9 +122,9 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
               controller: _tabController,
               children: [
                 // Tab Pendientes
-                _buildNotificacionesList(isPendientes: true),
+                _buildNotificacionesList(),
                 // Tab Leídas
-                _buildNotificacionesList(isPendientes: false),
+                _buildNotificacionesList(),
               ],
             ),
           ),
@@ -119,74 +133,53 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
     );
   }
 
-  Widget _buildNotificacionesList({required bool isPendientes}) {
-    // Datos de ejemplo
-    final notificacionesPendientes = [
-      {
-        'titulo': 'Mesa 5 necesita atención',
-        'mensaje': 'El cliente ha solicitado la cuenta',
-        'tipo': 'mesa',
-        'prioridad': 'ALTA',
-        'fecha': DateTime.now().subtract(const Duration(minutes: 5)),
-      },
-      {
-        'titulo': 'Nueva orden en cocina',
-        'mensaje': 'Mesa 8 - Orden #127',
-        'tipo': 'cocina',
-        'prioridad': 'MEDIA',
-        'fecha': DateTime.now().subtract(const Duration(minutes: 12)),
-      },
-      {
-        'titulo': 'Stock bajo',
-        'mensaje': 'Cerveza Corona - Quedan 5 unidades',
-        'tipo': 'inventario',
-        'prioridad': 'BAJA',
-        'fecha': DateTime.now().subtract(const Duration(hours: 1)),
-      },
-    ];
+  Widget _buildNotificacionesList() {
+    final notificacionesState = ref.watch(notificacionesProvider);
 
-    final notificacionesLeidas = [
-      {
-        'titulo': 'Factura generada',
-        'mensaje': 'Factura #1234 - Mesa 3 - \$125,000',
-        'tipo': 'factura',
-        'prioridad': 'BAJA',
-        'fecha': DateTime.now().subtract(const Duration(hours: 2)),
-      },
-      {
-        'titulo': 'Mesa liberada',
-        'mensaje': 'Mesa 7 ahora está disponible',
-        'tipo': 'mesa',
-        'prioridad': 'BAJA',
-        'fecha': DateTime.now().subtract(const Duration(hours: 3)),
-      },
-      {
-        'titulo': 'Orden completada',
-        'mensaje': 'Mesa 2 - Orden #125 lista para servir',
-        'tipo': 'cocina',
-        'prioridad': 'MEDIA',
-        'fecha': DateTime.now().subtract(const Duration(hours: 4)),
-      },
-      {
-        'titulo': 'Turno iniciado',
-        'mensaje': 'Tu turno ha iniciado exitosamente',
-        'tipo': 'sistema',
-        'prioridad': 'BAJA',
-        'fecha': DateTime.now().subtract(const Duration(hours: 6)),
-      },
-      {
-        'titulo': 'Backup completado',
-        'mensaje': 'Respaldo de datos realizado correctamente',
-        'tipo': 'sistema',
-        'prioridad': 'BAJA',
-        'fecha': DateTime.now().subtract(const Duration(days: 1)),
-      },
-    ];
+    if (notificacionesState.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF0d6efd),
+        ),
+      );
+    }
 
-    final notificaciones =
-        isPendientes ? notificacionesPendientes : notificacionesLeidas;
+    if (notificacionesState.error != null) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64.sp,
+                color: const Color(0xFFdc3545),
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Error al cargar notificaciones',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                notificacionesState.error!,
+                style: TextStyle(
+                  color: const Color(0xFF808080),
+                  fontSize: 14.sp,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-    if (notificaciones.isEmpty) {
+    if (notificacionesState.notificaciones.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(16.w),
@@ -200,7 +193,7 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
               ),
               SizedBox(height: 16.h),
               Text(
-                isPendientes
+                notificacionesState.estadoFiltro == 'PENDIENTE'
                     ? 'No hay notificaciones pendientes'
                     : 'No hay notificaciones leídas',
                 style: TextStyle(
@@ -215,24 +208,26 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
     }
 
     return ListView.separated(
-      itemCount: notificaciones.length,
+      itemCount: notificacionesState.notificaciones.length,
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        final notificacion = notificaciones[index];
+        final notificacion = notificacionesState.notificaciones[index];
         return _NotificacionItem(
-          titulo: notificacion['titulo'] as String,
-          mensaje: notificacion['mensaje'] as String,
-          tipo: notificacion['tipo'] as String,
-          prioridad: notificacion['prioridad'] as String,
-          fecha: notificacion['fecha'] as DateTime,
-          isPendiente: isPendientes,
+          notificacionId: notificacion.notificacionId,
+          titulo: notificacion.titulo,
+          mensaje: notificacion.mensaje,
+          tipo: notificacion.tipo,
+          prioridad: notificacion.prioridad,
+          fecha: notificacion.createdAt,
+          isPendiente: notificacion.estado == 'PENDIENTE',
         );
       },
     );
   }
 }
 
-class _NotificacionItem extends StatelessWidget {
+class _NotificacionItem extends ConsumerWidget {
+  final int notificacionId;
   final String titulo;
   final String mensaje;
   final String tipo;
@@ -241,6 +236,7 @@ class _NotificacionItem extends StatelessWidget {
   final bool isPendiente;
 
   const _NotificacionItem({
+    required this.notificacionId,
     required this.titulo,
     required this.mensaje,
     required this.tipo,
@@ -266,15 +262,18 @@ class _NotificacionItem extends StatelessWidget {
 
   IconData _getTipoIcon(String tipo) {
     switch (tipo) {
-      case 'mesa':
-        return Icons.table_restaurant;
-      case 'cocina':
-        return Icons.restaurant;
-      case 'inventario':
-        return Icons.inventory;
-      case 'factura':
+      case 'NUMERACION_BAJA':
         return Icons.receipt_long;
-      case 'sistema':
+      case 'MESA':
+        return Icons.table_restaurant;
+      case 'COCINA':
+        return Icons.restaurant;
+      case 'INVENTARIO':
+      case 'STOCK_BAJO':
+        return Icons.inventory;
+      case 'FACTURA':
+        return Icons.receipt_long;
+      case 'SISTEMA':
         return Icons.settings;
       default:
         return Icons.info;
@@ -282,7 +281,7 @@ class _NotificacionItem extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
 
     return Container(
@@ -371,8 +370,27 @@ class _NotificacionItem extends StatelessWidget {
           if (isPendiente)
             // Botón para marcar como leída
             TextButton.icon(
-              onPressed: () {
-                // TODO: Implementar marcar como leída
+              onPressed: () async {
+                final success = await ref.read(notificacionesProvider.notifier).marcarComoLeida(notificacionId);
+                if (!context.mounted) return;
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Notificación marcada como leída'),
+                      backgroundColor: Color(0xFF198754),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al marcar como leída'),
+                      backgroundColor: Color(0xFFdc3545),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
               },
               icon: Icon(Icons.check_circle_outline, size: 16.sp),
               label: Text('Marcar como leída', style: TextStyle(fontSize: 12.sp)),
@@ -384,8 +402,27 @@ class _NotificacionItem extends StatelessWidget {
           else
             // Botón para eliminar
             TextButton.icon(
-              onPressed: () {
-                // TODO: Implementar eliminar
+              onPressed: () async {
+                final success = await ref.read(notificacionesProvider.notifier).eliminarNotificacion(notificacionId);
+                if (!context.mounted) return;
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Notificación eliminada'),
+                      backgroundColor: Color(0xFF198754),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al eliminar notificación'),
+                      backgroundColor: Color(0xFFdc3545),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
               },
               icon: Icon(Icons.delete_outline, size: 16.sp),
               label: Text('Eliminar', style: TextStyle(fontSize: 12.sp)),

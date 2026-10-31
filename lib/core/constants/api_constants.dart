@@ -15,6 +15,9 @@ class ApiConstants {
   // Endpoints de Chat IA
   static const String chatQuery = '/chat/query';
 
+  // Endpoints de Notificaciones
+  static const String notificaciones = '/notificaciones';
+
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
   static const String headerMessageUuid = 'message-uuid';
