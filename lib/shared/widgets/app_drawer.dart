@@ -78,53 +78,27 @@ class AppDrawer extends ConsumerWidget {
               padding: EdgeInsets.zero,
               children: [
                 _DrawerMenuItem(
-                  icon: Icons.dashboard,
-                  title: 'Dashboard',
+                  icon: Icons.event_available,
+                  title: 'Reservas',
                   onTap: () {
                     Navigator.pop(context);
+                    // TODO: Navegar a Reservas
                   },
                 ),
                 _DrawerMenuItem(
-                  icon: Icons.table_restaurant,
-                  title: 'Mesas',
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                _DrawerMenuItem(
-                  icon: Icons.restaurant,
+                  icon: Icons.restaurant_menu,
                   title: 'Órdenes',
                   onTap: () {
                     Navigator.pop(context);
+                    // TODO: Navegar a Órdenes
                   },
                 ),
                 _DrawerMenuItem(
-                  icon: Icons.receipt_long,
-                  title: 'Facturación',
+                  icon: Icons.business_center,
+                  title: 'Gestión',
                   onTap: () {
                     Navigator.pop(context);
-                  },
-                ),
-                _DrawerMenuItem(
-                  icon: Icons.inventory,
-                  title: 'Inventario',
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                const Divider(),
-                _DrawerMenuItem(
-                  icon: Icons.assessment,
-                  title: 'Reportes',
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                _DrawerMenuItem(
-                  icon: Icons.people,
-                  title: 'Usuarios',
-                  onTap: () {
-                    Navigator.pop(context);
+                    // TODO: Navegar a Gestión
                   },
                 ),
                 _DrawerMenuItem(
@@ -132,6 +106,7 @@ class AppDrawer extends ConsumerWidget {
                   title: 'Configuración',
                   onTap: () {
                     Navigator.pop(context);
+                    // TODO: Navegar a Configuración
                   },
                 ),
                 const Divider(),
