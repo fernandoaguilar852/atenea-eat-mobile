@@ -48,39 +48,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('Chat IA'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () {
-              ref.read(chatProvider.notifier).clearMessages();
-            },
-            tooltip: 'Limpiar conversación',
-          ),
-        ],
-      ),
-      body: Column(
+    return Container(
+      color: Colors.black,
+      child: Column(
         children: [
           // Lista de mensajes
           Expanded(

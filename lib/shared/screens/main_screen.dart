@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../../features/chat/presentation/providers/chat_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/notificaciones_drawer.dart';
@@ -14,9 +15,35 @@ class MainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(mainScreenIndexProvider);
 
+    // Títulos para cada pantalla
+    final titles = ['Facturas', 'Movimientos', 'Dashboard', 'Reportes', 'Chat IA'];
+
     return Scaffold(
       drawer: const AppDrawer(),
       endDrawer: const NotificacionesDrawer(),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(titles[currentIndex]),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
+          ),
+          if (currentIndex == 4) // Chat IA
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                ref.read(chatProvider.notifier).clearMessages();
+              },
+              tooltip: 'Limpiar conversación',
+            ),
+        ],
+      ),
       body: IndexedStack(
         index: currentIndex,
         children: const [
@@ -103,32 +130,9 @@ class _FacturasScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('Facturas'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-        ],
-      ),
-      body: Center(
+    return Container(
+      color: Colors.black,
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -166,32 +170,9 @@ class _MovimientosScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('Movimientos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-        ],
-      ),
-      body: Center(
+    return Container(
+      color: Colors.black,
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -229,32 +210,9 @@ class _ReportesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('Reportes'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-        ],
-      ),
-      body: Center(
+    return Container(
+      color: Colors.black,
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
