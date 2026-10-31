@@ -36,6 +36,8 @@ abstract class ReportesRepository {
     required String endDate,
     String? tipoPago,
     int? cajaId,
+    required int pageSize,
+    required int pageNumber,
   });
 
   Future<StockProductosReporte> getReporteStockProductos({

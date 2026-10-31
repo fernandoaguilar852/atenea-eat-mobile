@@ -79,6 +79,8 @@ class ReportesRepositoryImpl implements ReportesRepository {
     required String endDate,
     String? tipoPago,
     int? cajaId,
+    required int pageSize,
+    required int pageNumber,
   }) async {
     try {
       final dto = await remoteDatasource.getReporteArqueoCaja(
@@ -87,6 +89,8 @@ class ReportesRepositoryImpl implements ReportesRepository {
         endDate: endDate,
         tipoPago: tipoPago,
         cajaId: cajaId,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
       );
       return dto.toEntity();
     } catch (e) {

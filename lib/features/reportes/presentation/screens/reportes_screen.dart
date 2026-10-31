@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/reportes_provider.dart';
+import '../../domain/entities/pagination.dart';
 import 'package:intl/intl.dart';
 
 class ReportesScreen extends ConsumerStatefulWidget {
@@ -517,7 +518,85 @@ class _VentasTabState extends ConsumerState<_VentasTab> {
               ),
             );
           }).toList(),
+
+        // Controles de paginación
+        if (reporte.pagination.totalElement > 0) ...[
+          SizedBox(height: 16.h),
+          _buildPaginationControls(reporte.pagination),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPaginationControls(Pagination pagination) {
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+    final totalPages = (pagination.totalElement / pagination.pageSize).ceil();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Botón anterior
+          TextButton.icon(
+            onPressed: hasPrevious
+                ? () {
+                    final newPage = currentPage - 1;
+                    ref.read(reportesProvider.notifier).loadReporteVentas(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+
+          // Indicador de página
+          Text(
+            'Página $currentPage de $totalPages',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
+          ),
+
+          // Botón siguiente
+          TextButton.icon(
+            onPressed: hasNext
+                ? () {
+                    final newPage = currentPage + 1;
+                    ref.read(reportesProvider.notifier).loadReporteVentas(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -865,7 +944,80 @@ class _InventarioTabState extends ConsumerState<_InventarioTab> {
               ),
             ),
           ),
+
+        // Controles de paginación
+        if (reporte.pagination.totalElement > 0) ...[
+          SizedBox(height: 16.h),
+          _buildPaginationControlsInventario(reporte.pagination),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPaginationControlsInventario(Pagination pagination) {
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+    final totalPages = (pagination.totalElement / pagination.pageSize).ceil();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton.icon(
+            onPressed: hasPrevious
+                ? () {
+                    final newPage = currentPage - 1;
+                    ref.read(reportesProvider.notifier).loadReporteInventarioConsumido(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+          Text(
+            'Página $currentPage de $totalPages',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: hasNext
+                ? () {
+                    final newPage = currentPage + 1;
+                    ref.read(reportesProvider.notifier).loadReporteInventarioConsumido(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1115,7 +1267,80 @@ class _ArqueoTabState extends ConsumerState<_ArqueoTab> {
               ),
             );
           }).toList(),
+
+        // Controles de paginación
+        if (reporte.pagination.totalElement > 0) ...[
+          SizedBox(height: 16.h),
+          _buildPaginationControlsArqueo(reporte.pagination),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPaginationControlsArqueo(Pagination pagination) {
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+    final totalPages = (pagination.totalElement / pagination.pageSize).ceil();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton.icon(
+            onPressed: hasPrevious
+                ? () {
+                    final newPage = currentPage - 1;
+                    ref.read(reportesProvider.notifier).loadReporteArqueoCaja(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+          Text(
+            'Página $currentPage de $totalPages',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: hasNext
+                ? () {
+                    final newPage = currentPage + 1;
+                    ref.read(reportesProvider.notifier).loadReporteArqueoCaja(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1335,7 +1560,76 @@ class _StockProductosTabState extends ConsumerState<_StockProductosTab> {
               ),
             );
           }).toList(),
+
+        // Controles de paginación
+        if (reporte.pagination.totalElement > 0) ...[
+          SizedBox(height: 16.h),
+          _buildPaginationControlsStockProductos(reporte.pagination),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPaginationControlsStockProductos(Pagination pagination) {
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+    final totalPages = (pagination.totalElement / pagination.pageSize).ceil();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton.icon(
+            onPressed: hasPrevious
+                ? () {
+                    final newPage = currentPage - 1;
+                    ref.read(reportesProvider.notifier).loadReporteStockProductos(
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+          Text(
+            'Página $currentPage de $totalPages',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: hasNext
+                ? () {
+                    final newPage = currentPage + 1;
+                    ref.read(reportesProvider.notifier).loadReporteStockProductos(
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1548,7 +1842,76 @@ class _StockInsumosTabState extends ConsumerState<_StockInsumosTab> {
               ),
             );
           }).toList(),
+
+        // Controles de paginación
+        if (reporte.pagination.totalElement > 0) ...[
+          SizedBox(height: 16.h),
+          _buildPaginationControlsStockInsumos(reporte.pagination),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPaginationControlsStockInsumos(Pagination pagination) {
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+    final totalPages = (pagination.totalElement / pagination.pageSize).ceil();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton.icon(
+            onPressed: hasPrevious
+                ? () {
+                    final newPage = currentPage - 1;
+                    ref.read(reportesProvider.notifier).loadReporteStockInsumos(
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+          Text(
+            'Página $currentPage de $totalPages',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: hasNext
+                ? () {
+                    final newPage = currentPage + 1;
+                    ref.read(reportesProvider.notifier).loadReporteStockInsumos(
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1811,7 +2174,80 @@ class _CostoBeneficioTabState extends ConsumerState<_CostoBeneficioTab> {
               ),
             );
           }).toList(),
+
+        // Controles de paginación
+        if (reporte.pagination.totalElement > 0) ...[
+          SizedBox(height: 16.h),
+          _buildPaginationControlsCostoBeneficio(reporte.pagination),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPaginationControlsCostoBeneficio(Pagination pagination) {
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+    final totalPages = (pagination.totalElement / pagination.pageSize).ceil();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: const Color(0xFF363636),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton.icon(
+            onPressed: hasPrevious
+                ? () {
+                    final newPage = currentPage - 1;
+                    ref.read(reportesProvider.notifier).loadReporteCostoBeneficio(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+          Text(
+            'Página $currentPage de $totalPages',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14.sp,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: hasNext
+                ? () {
+                    final newPage = currentPage + 1;
+                    ref.read(reportesProvider.notifier).loadReporteCostoBeneficio(
+                          startDate: _startDate!.toIso8601String().split('T')[0],
+                          endDate: _endDate!.toIso8601String().split('T')[0],
+                          pageNumber: newPage,
+                        );
+                  }
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

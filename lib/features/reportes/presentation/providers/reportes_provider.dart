@@ -254,6 +254,8 @@ class ReportesNotifier extends StateNotifier<ReportesState> {
     required String endDate,
     String? tipoPago,
     int? cajaId,
+    int pageSize = 10,
+    int pageNumber = 1,
   }) async {
     state = state.copyWith(isLoadingArqueo: true, errorArqueo: null);
 
@@ -264,6 +266,8 @@ class ReportesNotifier extends StateNotifier<ReportesState> {
         endDate: endDate,
         tipoPago: tipoPago,
         cajaId: cajaId,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
       );
 
       state = state.copyWith(

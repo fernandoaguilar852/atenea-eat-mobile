@@ -80,6 +80,8 @@ class GetReporteArqueoCajaUseCase {
     required String endDate,
     String? tipoPago,
     int? cajaId,
+    required int pageSize,
+    required int pageNumber,
   }) {
     return repository.getReporteArqueoCaja(
       clienteId: clienteId,
@@ -87,6 +89,8 @@ class GetReporteArqueoCajaUseCase {
       endDate: endDate,
       tipoPago: tipoPago,
       cajaId: cajaId,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
     );
   }
 }

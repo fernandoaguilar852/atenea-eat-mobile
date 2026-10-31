@@ -38,6 +38,8 @@ abstract class ReportesRemoteDatasource {
     required String endDate,
     String? tipoPago,
     int? cajaId,
+    required int pageSize,
+    required int pageNumber,
   });
 
   Future<StockProductosReporteResponseDto> getReporteStockProductos({
@@ -182,11 +184,15 @@ class ReportesRemoteDatasourceImpl implements ReportesRemoteDatasource {
     required String endDate,
     String? tipoPago,
     int? cajaId,
+    required int pageSize,
+    required int pageNumber,
   }) async {
     final queryParameters = <String, dynamic>{
       'clienteId': clienteId,
       'startDate': startDate,
       'endDate': endDate,
+      'pageSize': pageSize,
+      'pageNumber': pageNumber,
     };
 
     if (tipoPago != null) queryParameters['tipoPago'] = tipoPago;
