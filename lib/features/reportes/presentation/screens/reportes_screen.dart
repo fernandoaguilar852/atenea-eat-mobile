@@ -2592,16 +2592,36 @@ class _StockProductosTabState extends ConsumerState<_StockProductosTab> {
           _buildFilters(),
           SizedBox(height: 16.h),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _consultarReporte(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF198754),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+          // Botones: Limpiar filtros y Consultar
+          Row(
+            children: [
+              // Botón limpiar filtros
+              IconButton(
+                onPressed: _limpiarFiltros,
+                icon: const Icon(Icons.clear_all),
+                color: Colors.orange,
+                iconSize: 32.sp,
+                tooltip: 'Limpiar filtros',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                  padding: EdgeInsets.all(12.w),
+                ),
               ),
-              child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
-            ),
+
+              SizedBox(width: 12.w),
+
+              // Botón consultar
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _consultarReporte(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF198754),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                  child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
+                ),
+              ),
+            ],
           ),
 
           SizedBox(height: 24.h),
@@ -2627,6 +2647,11 @@ class _StockProductosTabState extends ConsumerState<_StockProductosTab> {
           children: [
             Text('Filtros', style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 12.h),
+
+            // Búsqueda de productos
+            _buildProductSearch(),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
 
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -2658,10 +2683,204 @@ class _StockProductosTabState extends ConsumerState<_StockProductosTab> {
     );
   }
 
+  Widget _buildProductSearch() {
+    final productosState = ref.watch(productosSearchProvider);
+    final selectedProducto = productosState.selectedProducto;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Producto',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14.sp,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        // Si hay producto seleccionado, mostrar chip
+        if (selectedProducto != null)
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0d6efd).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: const Color(0xFF0d6efd), width: 1),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedProducto.nombre,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Código: ${selectedProducto.codExterno}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    ref.read(productosSearchProvider.notifier).clearSearch();
+                  },
+                  icon: const Icon(Icons.close),
+                  color: const Color(0xFF0d6efd),
+                  iconSize: 20.sp,
+                ),
+              ],
+            ),
+          )
+        else
+          // Campo de búsqueda
+          TextField(
+            onChanged: (value) {
+              ref.read(productosSearchProvider.notifier).searchProductos(value);
+            },
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            decoration: InputDecoration(
+              hintText: 'Buscar producto (min. 3 caracteres)...',
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 14.sp,
+              ),
+              prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.5)),
+              suffixIcon: productosState.isLoading
+                  ? Padding(
+                      padding: EdgeInsets.all(12.w),
+                      child: SizedBox(
+                        width: 20.w,
+                        height: 20.w,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: const Color(0xFF0d6efd),
+                        ),
+                      ),
+                    )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFF2d2d2d),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0d6efd),
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            ),
+          ),
+
+        // Mostrar resultados de búsqueda
+        if (productosState.productos.isNotEmpty && selectedProducto == null) ...[
+          SizedBox(height: 8.h),
+          Container(
+            constraints: BoxConstraints(maxHeight: 200.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2d2d2d),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFF0d6efd).withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: productosState.productos.length,
+              separatorBuilder: (context, index) => Divider(
+                color: Colors.white.withValues(alpha: 0.1),
+                height: 1,
+              ),
+              itemBuilder: (context, index) {
+                final producto = productosState.productos[index];
+                return ListTile(
+                  onTap: () {
+                    ref.read(productosSearchProvider.notifier).selectProducto(producto);
+                  },
+                  title: Text(
+                    producto.nombre,
+                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Código: ${producto.codExterno}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                      Text(
+                        'Precio: \$${producto.precio.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: const Color(0xFF0d6efd),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                  dense: true,
+                );
+              },
+            ),
+          ),
+        ],
+
+        // Mostrar error si existe
+        if (productosState.error != null)
+          Padding(
+            padding: EdgeInsets.only(top: 8.h),
+            child: Text(
+              productosState.error!,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          ),
+      ],
+    );
+  }
+
   void _consultarReporte() {
+    final productosState = ref.read(productosSearchProvider);
+    final nombreProducto = productosState.selectedProducto?.nombre;
+
     ref.read(reportesProvider.notifier).loadReporteStockProductos(
+          nombreProducto: nombreProducto,
           stockBajo: _filtroStockBajo,
         );
+  }
+
+  void _limpiarFiltros() {
+    // Limpiar búsqueda de productos
+    ref.read(productosSearchProvider.notifier).clearSearch();
+
+    // Limpiar filtro de stock bajo
+    setState(() {
+      _filtroStockBajo = null;
+    });
   }
 
   Widget _buildReporteStock(reporte) {
@@ -2874,16 +3093,36 @@ class _StockInsumosTabState extends ConsumerState<_StockInsumosTab> {
           _buildFilters(),
           SizedBox(height: 16.h),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _consultarReporte(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF198754),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+          // Botones: Limpiar filtros y Consultar
+          Row(
+            children: [
+              // Botón limpiar filtros
+              IconButton(
+                onPressed: _limpiarFiltros,
+                icon: const Icon(Icons.clear_all),
+                color: Colors.orange,
+                iconSize: 32.sp,
+                tooltip: 'Limpiar filtros',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                  padding: EdgeInsets.all(12.w),
+                ),
               ),
-              child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
-            ),
+
+              SizedBox(width: 12.w),
+
+              // Botón consultar
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _consultarReporte(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF198754),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                  child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
+                ),
+              ),
+            ],
           ),
 
           SizedBox(height: 24.h),
@@ -2909,6 +3148,11 @@ class _StockInsumosTabState extends ConsumerState<_StockInsumosTab> {
           children: [
             Text('Filtros', style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 12.h),
+
+            // Búsqueda de insumos
+            _buildInsumoSearch(),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
 
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -2940,10 +3184,204 @@ class _StockInsumosTabState extends ConsumerState<_StockInsumosTab> {
     );
   }
 
+  Widget _buildInsumoSearch() {
+    final insumosState = ref.watch(insumosSearchProvider);
+    final selectedInsumo = insumosState.selectedInsumo;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Insumo',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14.sp,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        // Si hay insumo seleccionado, mostrar chip
+        if (selectedInsumo != null)
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0d6efd).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: const Color(0xFF0d6efd), width: 1),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedInsumo.nombre,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Stock: ${selectedInsumo.stockActual} ${selectedInsumo.unidadBase}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    ref.read(insumosSearchProvider.notifier).clearSearch();
+                  },
+                  icon: const Icon(Icons.close),
+                  color: const Color(0xFF0d6efd),
+                  iconSize: 20.sp,
+                ),
+              ],
+            ),
+          )
+        else
+          // Campo de búsqueda
+          TextField(
+            onChanged: (value) {
+              ref.read(insumosSearchProvider.notifier).searchInsumos(value);
+            },
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            decoration: InputDecoration(
+              hintText: 'Buscar insumo (min. 3 caracteres)...',
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 14.sp,
+              ),
+              prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.5)),
+              suffixIcon: insumosState.isLoading
+                  ? Padding(
+                      padding: EdgeInsets.all(12.w),
+                      child: SizedBox(
+                        width: 20.w,
+                        height: 20.w,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: const Color(0xFF0d6efd),
+                        ),
+                      ),
+                    )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFF2d2d2d),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0d6efd),
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            ),
+          ),
+
+        // Mostrar resultados de búsqueda
+        if (insumosState.insumos.isNotEmpty && selectedInsumo == null) ...[
+          SizedBox(height: 8.h),
+          Container(
+            constraints: BoxConstraints(maxHeight: 200.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2d2d2d),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFF0d6efd).withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: insumosState.insumos.length,
+              separatorBuilder: (context, index) => Divider(
+                color: Colors.white.withValues(alpha: 0.1),
+                height: 1,
+              ),
+              itemBuilder: (context, index) {
+                final insumo = insumosState.insumos[index];
+                return ListTile(
+                  onTap: () {
+                    ref.read(insumosSearchProvider.notifier).selectInsumo(insumo);
+                  },
+                  title: Text(
+                    insumo.nombre,
+                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Stock: ${insumo.stockActual} ${insumo.unidadBase}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                      Text(
+                        'Costo: \$${insumo.costoPromedio}',
+                        style: TextStyle(
+                          color: const Color(0xFF0d6efd),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                  dense: true,
+                );
+              },
+            ),
+          ),
+        ],
+
+        // Mostrar error si existe
+        if (insumosState.error != null)
+          Padding(
+            padding: EdgeInsets.only(top: 8.h),
+            child: Text(
+              insumosState.error!,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          ),
+      ],
+    );
+  }
+
   void _consultarReporte() {
+    final insumosState = ref.read(insumosSearchProvider);
+    final nombreInsumo = insumosState.selectedInsumo?.nombre;
+
     ref.read(reportesProvider.notifier).loadReporteStockInsumos(
+          nombreInsumo: nombreInsumo,
           stockBajo: _filtroStockBajo,
         );
+  }
+
+  void _limpiarFiltros() {
+    // Limpiar búsqueda de insumos
+    ref.read(insumosSearchProvider.notifier).clearSearch();
+
+    // Limpiar filtro de stock bajo
+    setState(() {
+      _filtroStockBajo = null;
+    });
   }
 
   Widget _buildReporteStock(reporte) {
