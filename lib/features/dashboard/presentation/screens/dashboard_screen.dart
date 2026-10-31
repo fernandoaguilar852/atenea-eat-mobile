@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../providers/dashboard_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -18,7 +19,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    // Cargar estadísticas al iniciar
+    Future.microtask(() => ref.read(dashboardProvider.notifier).loadEstadisticas());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final dashboardState = ref.watch(dashboardProvider);
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -41,25 +51,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Saludo
-              _buildGreeting(),
-              SizedBox(height: 24.h),
+        child: dashboardState.isLoading && dashboardState.estadisticas == null
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF0d6efd),
+                ),
+              )
+            : dashboardState.error != null && dashboardState.estadisticas == null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64.sp,
+                          color: const Color(0xFFdc3545),
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Error al cargar estadísticas',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          dashboardState.error!,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: const Color(0xFF808080),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 24.h),
+                        ElevatedButton(
+                          onPressed: () {
+                            ref.read(dashboardProvider.notifier).loadEstadisticas();
+                          },
+                          child: const Text('Reintentar'),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(16.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Saludo
+                        _buildGreeting(),
+                        SizedBox(height: 24.h),
 
-              // Tarjetas de estadísticas
-              _buildStatsGrid(),
-              SizedBox(height: 24.h),
+                        // Tarjetas de estadísticas
+                        _buildStatsGrid(dashboardState.estadisticas),
+                        SizedBox(height: 24.h),
 
-              // Actividad reciente
-              _buildRecentActivity(),
-            ],
-          ),
-        ),
+                        // Actividad reciente
+                        _buildRecentActivity(),
+                      ],
+                    ),
+                  ),
       ),
     );
   }
@@ -98,7 +151,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(estadisticas) {
+    // Si no hay datos, mostrar valores por defecto
+    if (estadisticas == null) {
+      return GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
+        childAspectRatio: 1.5,
+        children: [
+          _StatCard(
+            title: 'Mesas',
+            value: '--',
+            subtitle: 'Cargando...',
+            icon: Icons.table_restaurant,
+            color: const Color(0xFF0d6efd),
+          ),
+          _StatCard(
+            title: 'Facturación',
+            value: '--',
+            subtitle: 'Cargando...',
+            icon: Icons.payments,
+            color: const Color(0xFF198754),
+          ),
+          _StatCard(
+            title: 'Cocina',
+            value: '--',
+            subtitle: 'Cargando...',
+            icon: Icons.restaurant,
+            color: const Color(0xFFffc107),
+          ),
+          _StatCard(
+            title: 'Alertas',
+            value: '--',
+            subtitle: 'Cargando...',
+            icon: Icons.notifications_active,
+            color: const Color(0xFFdc3545),
+          ),
+        ],
+      );
+    }
+
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -109,30 +204,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       children: [
         _StatCard(
           title: 'Mesas',
-          value: '8 Ocupadas',
-          subtitle: '12 totales',
+          value: '${estadisticas.totalMesasOcupadas} Ocupadas',
+          subtitle: '${estadisticas.totalMesas} totales',
           icon: Icons.table_restaurant,
           color: const Color(0xFF0d6efd),
         ),
         _StatCard(
           title: 'Facturación',
-          value: currencyFormat.format(1250000),
-          subtitle: '24 facturas',
+          value: currencyFormat.format(estadisticas.totalIngresos),
+          subtitle: '${estadisticas.cantidadFacturas} facturas',
           icon: Icons.payments,
           color: const Color(0xFF198754),
         ),
         _StatCard(
           title: 'Cocina',
-          value: '5 Pendientes',
-          subtitle: '3 en preparación',
+          value: '${estadisticas.totalComandasPendientes} Pendientes',
+          subtitle: '${estadisticas.totalComandasEnPreparacion} en preparación',
           icon: Icons.restaurant,
           color: const Color(0xFFffc107),
         ),
         _StatCard(
-          title: 'Inventario',
-          value: '127 Productos',
-          subtitle: '5 bajo stock',
-          icon: Icons.inventory,
+          title: 'Alertas',
+          value: '${estadisticas.cantidadAlertas}',
+          subtitle: estadisticas.hayAlertas ? 'Requiere atención' : 'Todo bien',
+          icon: Icons.notifications_active,
           color: const Color(0xFFdc3545),
         ),
       ],
@@ -191,8 +286,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> _refreshData() async {
-    // Simular carga de datos
-    await Future.delayed(const Duration(seconds: 1));
+    await ref.read(dashboardProvider.notifier).refresh();
   }
 }
 

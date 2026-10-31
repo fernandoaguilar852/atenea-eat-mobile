@@ -8,9 +8,9 @@ class ApiConstants {
   static const String logout = '/login/logout';
   static const String refreshToken = '/refresh-token';
 
-  // Endpoints de Dashboard
+  // Endpoints de Dashboard y Reportes
   static const String dashboard = '/dashboard';
-  static const String estadisticas = '/dashboard/estadisticas';
+  static const String consultaEstadisticas = '/reportes/consulta-estadisticas';
 
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
