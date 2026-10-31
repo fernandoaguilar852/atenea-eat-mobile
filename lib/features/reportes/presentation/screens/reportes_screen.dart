@@ -100,8 +100,8 @@ class _VentasTab extends ConsumerStatefulWidget {
 }
 
 class _VentasTabState extends ConsumerState<_VentasTab> {
-  DateTime? _startDate;
-  DateTime? _endDate;
+  DateTime? _startDate = DateTime.now();
+  DateTime? _endDate = DateTime.now();
   final TextEditingController _productSearchController = TextEditingController();
   final TextEditingController _consumidorSearchController = TextEditingController();
 
@@ -1416,8 +1416,8 @@ class _InventarioTab extends ConsumerStatefulWidget {
 }
 
 class _InventarioTabState extends ConsumerState<_InventarioTab> {
-  DateTime? _startDate;
-  DateTime? _endDate;
+  DateTime? _startDate = DateTime.now();
+  DateTime? _endDate = DateTime.now();
   String? _tipoMovimiento;
 
   @override
@@ -2075,8 +2075,8 @@ class _ArqueoTab extends ConsumerStatefulWidget {
 }
 
 class _ArqueoTabState extends ConsumerState<_ArqueoTab> {
-  DateTime? _startDate;
-  DateTime? _endDate;
+  DateTime? _startDate = DateTime.now();
+  DateTime? _endDate = DateTime.now();
   String? _tipoPago;
 
   @override
