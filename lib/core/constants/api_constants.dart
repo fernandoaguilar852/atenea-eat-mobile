@@ -12,6 +12,9 @@ class ApiConstants {
   static const String dashboard = '/dashboard';
   static const String consultaEstadisticas = '/reportes/consulta-estadisticas';
 
+  // Endpoints de Chat IA
+  static const String chatQuery = '/chat/query';
+
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
   static const String headerMessageUuid = 'message-uuid';

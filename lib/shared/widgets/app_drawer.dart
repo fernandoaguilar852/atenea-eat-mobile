@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/chat/presentation/screens/chat_screen.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -118,6 +119,19 @@ class AppDrawer extends ConsumerWidget {
                   title: 'Reportes',
                   onTap: () {
                     Navigator.pop(context);
+                  },
+                ),
+                _DrawerMenuItem(
+                  icon: Icons.smart_toy,
+                  title: 'Chat IA',
+                  iconColor: const Color(0xFF0d6efd),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ChatScreen(),
+                      ),
+                    );
                   },
                 ),
                 _DrawerMenuItem(
