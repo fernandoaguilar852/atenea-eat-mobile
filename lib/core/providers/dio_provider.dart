@@ -30,7 +30,7 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Interceptor para agregar token automáticamente
+  // Interceptor para agregar token y headers requeridos automáticamente
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -40,6 +40,11 @@ final dioProvider = Provider<Dio>((ref) {
         if (token != null && token.isNotEmpty) {
           options.headers[ApiConstants.headerAuthorization] = 'Bearer $token';
         }
+
+        // Agregar headers requeridos por el API
+        options.headers[ApiConstants.headerMessageUuid] = '550e8400-e29b-41d4-a716-446655440000';
+        options.headers[ApiConstants.headerRequestAppId] = ApiConstants.defaultAppId;
+
         return handler.next(options);
       },
       onError: (error, handler) async {

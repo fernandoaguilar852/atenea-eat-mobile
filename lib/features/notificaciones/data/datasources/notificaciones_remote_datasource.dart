@@ -33,20 +33,24 @@ class NotificacionesRemoteDatasourceImpl implements NotificacionesRemoteDatasour
     required int pageNumber,
     required String estado,
   }) async {
-    final response = await dio.get(
-      ApiConstants.buildUrl(ApiConstants.notificaciones),
-      queryParameters: {
-        'clienteId': clienteId,
-        'pageSize': pageSize,
-        'pageNumber': pageNumber,
-        'estado': estado,
-      },
-    );
+    try {
+      final response = await dio.get(
+        ApiConstants.buildUrl(ApiConstants.notificaciones),
+        queryParameters: {
+          'clienteId': clienteId,
+          'pageSize': pageSize,
+          'pageNumber': pageNumber,
+          'estado': estado,
+        },
+      );
 
-    if (response.statusCode == 200) {
-      return NotificacionesResponseDto.fromJson(response.data as Map<String, dynamic>);
-    } else {
-      throw Exception('Error al obtener notificaciones');
+      if (response.statusCode == 200) {
+        return NotificacionesResponseDto.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Error al obtener notificaciones - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
