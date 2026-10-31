@@ -10,6 +10,7 @@ import '../entities/tipo_producto.dart';
 import '../entities/caja.dart';
 import '../entities/usuario.dart';
 import '../entities/operador.dart';
+import '../entities/insumo.dart';
 import '../repositories/reportes_repository.dart';
 
 /// Use case para obtener reporte de ventas
@@ -294,6 +295,27 @@ class GetOperadoresUseCase {
   }) {
     return repository.getOperadores(
       clienteId: clienteId,
+      pageSize: pageSize,
+      pageNumber: pageNumber,
+    );
+  }
+}
+
+/// Use case para buscar insumos
+class SearchInsumosUseCase {
+  final ReportesRepository repository;
+
+  SearchInsumosUseCase(this.repository);
+
+  Future<List<Insumo>> call({
+    required int clienteId,
+    required String nombre,
+    int pageSize = 20,
+    int pageNumber = 1,
+  }) {
+    return repository.searchInsumos(
+      clienteId: clienteId,
+      nombre: nombre,
       pageSize: pageSize,
       pageNumber: pageNumber,
     );

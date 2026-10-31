@@ -10,6 +10,7 @@ import '../entities/tipo_producto.dart';
 import '../entities/caja.dart';
 import '../entities/usuario.dart';
 import '../entities/operador.dart';
+import '../entities/insumo.dart';
 
 abstract class ReportesRepository {
   Future<VentasReporte> getReporteVentas({
@@ -111,6 +112,13 @@ abstract class ReportesRepository {
   Future<List<Operador>> getOperadores({
     required int clienteId,
     int pageSize = 100,
+    int pageNumber = 1,
+  });
+
+  Future<List<Insumo>> searchInsumos({
+    required int clienteId,
+    required String nombre,
+    int pageSize = 20,
     int pageNumber = 1,
   });
 }

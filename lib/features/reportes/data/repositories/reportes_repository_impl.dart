@@ -10,6 +10,7 @@ import '../../domain/entities/tipo_producto.dart';
 import '../../domain/entities/caja.dart';
 import '../../domain/entities/usuario.dart';
 import '../../domain/entities/operador.dart';
+import '../../domain/entities/insumo.dart';
 import '../../domain/repositories/reportes_repository.dart';
 import '../datasources/reportes_remote_datasource.dart';
 
@@ -285,6 +286,26 @@ class ReportesRepositoryImpl implements ReportesRepository {
     try {
       final dto = await remoteDatasource.getOperadores(
         clienteId: clienteId,
+        pageSize: pageSize,
+        pageNumber: pageNumber,
+      );
+      return dto.toEntities();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Insumo>> searchInsumos({
+    required int clienteId,
+    required String nombre,
+    int pageSize = 20,
+    int pageNumber = 1,
+  }) async {
+    try {
+      final dto = await remoteDatasource.searchInsumos(
+        clienteId: clienteId,
+        nombre: nombre,
         pageSize: pageSize,
         pageNumber: pageNumber,
       );

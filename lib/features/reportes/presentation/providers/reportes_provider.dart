@@ -16,6 +16,7 @@ import '../../domain/entities/consumidor.dart';
 import '../../domain/entities/tipo_producto.dart';
 import '../../domain/entities/caja.dart';
 import '../../domain/entities/operador.dart';
+import '../../domain/entities/insumo.dart';
 
 // Provider del datasource
 final reportesRemoteDatasourceProvider = Provider<ReportesRemoteDatasource>((ref) {
@@ -88,6 +89,11 @@ final getUsuarioUseCaseProvider = Provider((ref) {
 final getOperadoresUseCaseProvider = Provider((ref) {
   final repository = ref.watch(reportesRepositoryProvider);
   return GetOperadoresUseCase(repository);
+});
+
+final searchInsumosUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(reportesRepositoryProvider);
+  return SearchInsumosUseCase(repository);
 });
 
 // Estado de reportes
@@ -871,6 +877,95 @@ final operadoresProvider = StateNotifierProvider<OperadoresNotifier, OperadoresS
 
   return OperadoresNotifier(
     getOperadoresUseCase: ref.watch(getOperadoresUseCaseProvider),
+    clienteId: clienteId,
+  );
+});
+
+// Estado para búsqueda de insumos
+class InsumosSearchState {
+  final List<Insumo> insumos;
+  final bool isLoading;
+  final String? error;
+  final Insumo? selectedInsumo;
+
+  InsumosSearchState({
+    this.insumos = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedInsumo,
+  });
+
+  InsumosSearchState copyWith({
+    List<Insumo>? insumos,
+    bool? isLoading,
+    String? error,
+    Insumo? selectedInsumo,
+    bool clearSelected = false,
+  }) {
+    return InsumosSearchState(
+      insumos: insumos ?? this.insumos,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedInsumo: clearSelected ? null : (selectedInsumo ?? this.selectedInsumo),
+    );
+  }
+}
+
+// Notifier para búsqueda de insumos
+class InsumosSearchNotifier extends StateNotifier<InsumosSearchState> {
+  final SearchInsumosUseCase searchInsumosUseCase;
+  final int clienteId;
+
+  InsumosSearchNotifier({
+    required this.searchInsumosUseCase,
+    required this.clienteId,
+  }) : super(InsumosSearchState());
+
+  Future<void> searchInsumos(String query) async {
+    if (query.length < 3) {
+      state = InsumosSearchState();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final insumos = await searchInsumosUseCase(
+        clienteId: clienteId,
+        nombre: query,
+      );
+
+      state = state.copyWith(
+        insumos: insumos,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectInsumo(Insumo insumo) {
+    state = state.copyWith(
+      selectedInsumo: insumo,
+      insumos: [],
+    );
+  }
+
+  void clearSearch() {
+    state = InsumosSearchState();
+  }
+}
+
+// Provider del StateNotifier para búsqueda de insumos
+final insumosSearchProvider = StateNotifierProvider<InsumosSearchNotifier, InsumosSearchState>((ref) {
+  final authState = ref.watch(authProvider);
+  final clienteId = authState.user?.clienteId ?? 0;
+
+  return InsumosSearchNotifier(
+    searchInsumosUseCase: ref.watch(searchInsumosUseCaseProvider),
     clienteId: clienteId,
   );
 });

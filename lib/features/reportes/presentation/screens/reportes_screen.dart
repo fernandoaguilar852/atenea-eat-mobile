@@ -21,7 +21,7 @@ class _ReportesScreenState extends ConsumerState<ReportesScreen>
 
   final List<Tab> _tabs = const [
     Tab(icon: Icon(Icons.point_of_sale), text: 'Ventas'),
-    Tab(icon: Icon(Icons.inventory_2), text: 'Inventario'),
+    Tab(icon: Icon(Icons.inventory_2), text: 'Inv. Consumido'),
     Tab(icon: Icon(Icons.account_balance_wallet), text: 'Arqueo'),
     Tab(icon: Icon(Icons.category), text: 'Productos'),
     Tab(icon: Icon(Icons.science), text: 'Insumos'),
@@ -1445,18 +1445,38 @@ class _InventarioTabState extends ConsumerState<_InventarioTab> {
           _buildFilters(),
           SizedBox(height: 16.h),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _startDate != null && _endDate != null
-                  ? () => _consultarReporte()
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF198754),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+          // Botones: Limpiar filtros y Consultar
+          Row(
+            children: [
+              // Botón limpiar filtros
+              IconButton(
+                onPressed: _limpiarFiltros,
+                icon: const Icon(Icons.clear_all),
+                color: Colors.orange,
+                iconSize: 32.sp,
+                tooltip: 'Limpiar filtros',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                  padding: EdgeInsets.all(12.w),
+                ),
               ),
-              child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
-            ),
+
+              SizedBox(width: 12.w),
+
+              // Botón consultar
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _startDate != null && _endDate != null
+                      ? () => _consultarReporte()
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF198754),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                  child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
+                ),
+              ),
+            ],
           ),
 
           SizedBox(height: 24.h),
@@ -1586,20 +1606,252 @@ class _InventarioTabState extends ConsumerState<_InventarioTab> {
                 setState(() => _tipoMovimiento = tipo);
               },
             ),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
+
+            // Búsqueda de producto
+            _buildProductSearch(),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
+
+            // Búsqueda de insumo
+            _buildInsumoSearch(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildProductSearch() {
+    final productosState = ref.watch(productosSearchProvider);
+    final selectedProducto = productosState.selectedProducto;
+
+    if (selectedProducto != null) {
+      return Container(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0d6efd).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(color: const Color(0xFF0d6efd)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle, color: const Color(0xFF0d6efd), size: 20.sp),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedProducto.nombre,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                  ),
+                  Text(
+                    'Código: ${selectedProducto.codExterno}',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12.sp),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.close, color: Colors.white, size: 20.sp),
+              onPressed: () => ref.read(productosSearchProvider.notifier).clearSearch(),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+          decoration: InputDecoration(
+            hintText: 'Buscar producto (opcional)...',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+            prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.7)),
+            suffixIcon: productosState.isLoading
+                ? Padding(
+                    padding: EdgeInsets.all(12.w),
+                    child: SizedBox(
+                      width: 20.w,
+                      height: 20.w,
+                      child: const CircularProgressIndicator(color: Color(0xFF0d6efd), strokeWidth: 2),
+                    ),
+                  )
+                : null,
+            filled: true,
+            fillColor: const Color(0xFF2d2d2d),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: BorderSide.none),
+          ),
+          onChanged: (value) {
+            if (value.length >= 3) {
+              ref.read(productosSearchProvider.notifier).searchProductos(value);
+            } else if (value.isEmpty) {
+              ref.read(productosSearchProvider.notifier).clearSearch();
+            }
+          },
+        ),
+        if (productosState.productos.isNotEmpty && selectedProducto == null) ...[
+          SizedBox(height: 8.h),
+          Container(
+            constraints: BoxConstraints(maxHeight: 200.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2d2d2d),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: productosState.productos.length,
+              separatorBuilder: (_, __) => Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+              itemBuilder: (context, index) {
+                final producto = productosState.productos[index];
+                return ListTile(
+                  title: Text(producto.nombre, style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                  subtitle: Text(
+                    'Código: ${producto.codExterno} - \$${producto.precio}',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12.sp),
+                  ),
+                  onTap: () => ref.read(productosSearchProvider.notifier).selectProducto(producto),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildInsumoSearch() {
+    final insumosState = ref.watch(insumosSearchProvider);
+    final selectedInsumo = insumosState.selectedInsumo;
+
+    if (selectedInsumo != null) {
+      return Container(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0d6efd).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(color: const Color(0xFF0d6efd)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle, color: const Color(0xFF0d6efd), size: 20.sp),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedInsumo.nombre,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                  ),
+                  Text(
+                    'Stock: ${selectedInsumo.stockActual} ${selectedInsumo.unidadBase}',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12.sp),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.close, color: Colors.white, size: 20.sp),
+              onPressed: () => ref.read(insumosSearchProvider.notifier).clearSearch(),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+          decoration: InputDecoration(
+            hintText: 'Buscar insumo (opcional)...',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+            prefixIcon: Icon(Icons.science, color: Colors.white.withValues(alpha: 0.7)),
+            suffixIcon: insumosState.isLoading
+                ? Padding(
+                    padding: EdgeInsets.all(12.w),
+                    child: SizedBox(
+                      width: 20.w,
+                      height: 20.w,
+                      child: const CircularProgressIndicator(color: Color(0xFF0d6efd), strokeWidth: 2),
+                    ),
+                  )
+                : null,
+            filled: true,
+            fillColor: const Color(0xFF2d2d2d),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: BorderSide.none),
+          ),
+          onChanged: (value) {
+            if (value.length >= 3) {
+              ref.read(insumosSearchProvider.notifier).searchInsumos(value);
+            } else if (value.isEmpty) {
+              ref.read(insumosSearchProvider.notifier).clearSearch();
+            }
+          },
+        ),
+        if (insumosState.insumos.isNotEmpty && selectedInsumo == null) ...[
+          SizedBox(height: 8.h),
+          Container(
+            constraints: BoxConstraints(maxHeight: 200.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2d2d2d),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: insumosState.insumos.length,
+              separatorBuilder: (_, __) => Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+              itemBuilder: (context, index) {
+                final insumo = insumosState.insumos[index];
+                return ListTile(
+                  title: Text(insumo.nombre, style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                  subtitle: Text(
+                    'Stock: ${insumo.stockActual} ${insumo.unidadBase}',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12.sp),
+                  ),
+                  onTap: () => ref.read(insumosSearchProvider.notifier).selectInsumo(insumo),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   void _consultarReporte() {
     if (_startDate == null || _endDate == null) return;
+
+    final productosState = ref.read(productosSearchProvider);
+    final productoId = productosState.selectedProducto?.productoId;
+    final insumosState = ref.read(insumosSearchProvider);
+    final insumoId = insumosState.selectedInsumo?.insumoId;
 
     ref.read(reportesProvider.notifier).loadReporteInventarioConsumido(
           startDate: _startDate!.toIso8601String().split('T')[0],
           endDate: _endDate!.toIso8601String().split('T')[0],
           tipoMovimiento: _tipoMovimiento,
+          productoId: productoId,
+          insumoId: insumoId,
         );
+  }
+
+  void _limpiarFiltros() {
+    // Limpiar filtro de productos
+    ref.read(productosSearchProvider.notifier).clearSearch();
+
+    // Limpiar filtro de insumos
+    ref.read(insumosSearchProvider.notifier).clearSearch();
+
+    // Limpiar tipo de movimiento
+    setState(() {
+      _tipoMovimiento = null;
+    });
   }
 
   Widget _buildReporteInventario(reporte) {
