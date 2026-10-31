@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/notificaciones_drawer.dart';
@@ -19,11 +20,11 @@ class MainScreen extends ConsumerWidget {
       body: IndexedStack(
         index: currentIndex,
         children: const [
-          _MesasScreen(),
-          _OrdenesScreen(),
+          _FacturasScreen(),
+          _MovimientosScreen(),
           DashboardScreen(),
-          _FacturacionScreen(),
-          _InventarioScreen(),
+          _ReportesScreen(),
+          ChatScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -38,15 +39,15 @@ class MainScreen extends ConsumerWidget {
         selectedFontSize: 12.sp,
         unselectedFontSize: 12.sp,
         items: [
-          // 0: Mesas
+          // 0: Facturas
           BottomNavigationBarItem(
-            icon: Icon(Icons.table_restaurant, size: 24.sp),
-            label: 'Mesas',
+            icon: Icon(Icons.receipt_long, size: 24.sp),
+            label: 'Facturas',
           ),
-          // 1: Órdenes
+          // 1: Movimientos
           BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant, size: 24.sp),
-            label: 'Órdenes',
+            icon: Icon(Icons.swap_horiz, size: 24.sp),
+            label: 'Movimientos',
           ),
           // 2: Dashboard (Center with special design)
           BottomNavigationBarItem(
@@ -80,15 +81,15 @@ class MainScreen extends ConsumerWidget {
             ),
             label: '',
           ),
-          // 3: Facturación
+          // 3: Reportes
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long, size: 24.sp),
-            label: 'Facturación',
+            icon: Icon(Icons.bar_chart, size: 24.sp),
+            label: 'Reportes',
           ),
-          // 4: Inventario
+          // 4: Chat IA
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory, size: 24.sp),
-            label: 'Inventario',
+            icon: Icon(Icons.smart_toy, size: 24.sp),
+            label: 'Chat IA',
           ),
         ],
       ),
@@ -97,8 +98,8 @@ class MainScreen extends ConsumerWidget {
 }
 
 // Placeholder screens
-class _MesasScreen extends StatelessWidget {
-  const _MesasScreen();
+class _FacturasScreen extends StatelessWidget {
+  const _FacturasScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +109,7 @@ class _MesasScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Mesas'),
+        title: const Text('Facturas'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -118,122 +119,6 @@ class _MesasScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.table_restaurant,
-              size: 80.sp,
-              color: const Color(0xFF808080).withValues(alpha: 0.3),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Gestión de Mesas',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Módulo en desarrollo',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFFB0B0B0),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OrdenesScreen extends StatelessWidget {
-  const _OrdenesScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Órdenes'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.restaurant,
-              size: 80.sp,
-              color: const Color(0xFF808080).withValues(alpha: 0.3),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Gestión de Órdenes',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Módulo en desarrollo',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFFB0B0B0),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FacturacionScreen extends StatelessWidget {
-  const _FacturacionScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Facturación'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
             onPressed: () {},
           ),
         ],
@@ -249,7 +134,7 @@ class _FacturacionScreen extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             Text(
-              'Gestión de Facturación',
+              'Gestión de Facturas',
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -271,8 +156,8 @@ class _FacturacionScreen extends StatelessWidget {
   }
 }
 
-class _InventarioScreen extends StatelessWidget {
-  const _InventarioScreen();
+class _MovimientosScreen extends StatelessWidget {
+  const _MovimientosScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +167,7 @@ class _InventarioScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Inventario'),
+        title: const Text('Movimientos'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -291,7 +176,7 @@ class _InventarioScreen extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.filter_list),
             onPressed: () {},
           ),
         ],
@@ -301,13 +186,71 @@ class _InventarioScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.inventory,
+              Icons.swap_horiz,
               size: 80.sp,
               color: const Color(0xFF808080).withValues(alpha: 0.3),
             ),
             SizedBox(height: 16.h),
             Text(
-              'Gestión de Inventario',
+              'Gestión de Movimientos',
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Módulo en desarrollo',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: const Color(0xFFB0B0B0),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportesScreen extends StatelessWidget {
+  const _ReportesScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('Reportes'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bar_chart,
+              size: 80.sp,
+              color: const Color(0xFF808080).withValues(alpha: 0.3),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'Gestión de Reportes',
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,

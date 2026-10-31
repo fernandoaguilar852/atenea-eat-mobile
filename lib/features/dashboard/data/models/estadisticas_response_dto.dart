@@ -101,21 +101,21 @@ class EstadisticasData {
 
   factory EstadisticasData.fromJson(Map<String, dynamic> json) {
     return EstadisticasData(
-      ventasDia: json['ventasDia'] as int,
-      cantidadFacturas: json['cantidadFacturas'] as int,
+      ventasDia: (json['ventasDia'] as num).toInt(),
+      cantidadFacturas: (json['cantidadFacturas'] as num).toInt(),
       totalIngresos: json['totalIngresos'] as num,
-      cantidadAlertas: json['cantidadAlertas'] as int,
-      totalReservas: json['totalReservas'] as int,
-      totalReservasConfirmadas: json['totalReservasConfirmadas'] as int,
-      totalOrdenesAbiertas: json['totalOrdenesAbiertas'] as int,
-      totalOrdenesEnProceso: json['totalOrdenesEnProceso'] as int,
-      totalOrdenesCerradas: json['totalOrdenesCerradas'] as int,
-      totalMesas: json['totalMesas'] as int,
-      totalMesasOcupadas: json['totalMesasOcupadas'] as int,
-      totalMesasLibres: json['totalMesasLibres'] as int,
-      totalComandasPendientes: json['totalComandasPendientes'] as int,
-      totalComandasEnPreparacion: json['totalComandasEnPreparacion'] as int,
-      totalComandasListas: json['totalComandasListas'] as int,
+      cantidadAlertas: (json['cantidadAlertas'] as num).toInt(),
+      totalReservas: (json['totalReservas'] as num).toInt(),
+      totalReservasConfirmadas: (json['totalReservasConfirmadas'] as num).toInt(),
+      totalOrdenesAbiertas: (json['totalOrdenesAbiertas'] as num).toInt(),
+      totalOrdenesEnProceso: (json['totalOrdenesEnProceso'] as num).toInt(),
+      totalOrdenesCerradas: (json['totalOrdenesCerradas'] as num).toInt(),
+      totalMesas: (json['totalMesas'] as num).toInt(),
+      totalMesasOcupadas: (json['totalMesasOcupadas'] as num).toInt(),
+      totalMesasLibres: (json['totalMesasLibres'] as num).toInt(),
+      totalComandasPendientes: (json['totalComandasPendientes'] as num).toInt(),
+      totalComandasEnPreparacion: (json['totalComandasEnPreparacion'] as num).toInt(),
+      totalComandasListas: (json['totalComandasListas'] as num).toInt(),
     );
   }
 }
