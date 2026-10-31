@@ -2097,16 +2097,36 @@ class _ArqueoTabState extends ConsumerState<_ArqueoTab> {
           _buildFilters(),
           SizedBox(height: 16.h),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _startDate != null && _endDate != null ? () => _consultarReporte() : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF198754),
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+          // Botones: Limpiar filtros y Consultar
+          Row(
+            children: [
+              // Botón limpiar filtros
+              IconButton(
+                onPressed: _limpiarFiltros,
+                icon: const Icon(Icons.clear_all),
+                color: Colors.orange,
+                iconSize: 32.sp,
+                tooltip: 'Limpiar filtros',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                  padding: EdgeInsets.all(12.w),
+                ),
               ),
-              child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
-            ),
+
+              SizedBox(width: 12.w),
+
+              // Botón consultar
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _startDate != null && _endDate != null ? () => _consultarReporte() : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF198754),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                  ),
+                  child: Text('Consultar Reporte', style: TextStyle(fontSize: 16.sp)),
+                ),
+              ),
+            ],
           ),
 
           SizedBox(height: 24.h),
@@ -2202,20 +2222,159 @@ class _ArqueoTabState extends ConsumerState<_ArqueoTab> {
                 setState(() => _tipoPago = tipo);
               },
             ),
+
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
+
+            // Selector de caja
+            _buildCajaSelector(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildCajaSelector() {
+    final cajasState = ref.watch(cajasProvider);
+    final selectedCaja = cajasState.selectedCaja;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Caja',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14.sp,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        if (cajasState.isLoading)
+          Container(
+            padding: EdgeInsets.all(16.w),
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF0d6efd),
+              ),
+            ),
+          )
+        else if (cajasState.error != null)
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: Colors.red, width: 1),
+            ),
+            child: Text(
+              'Error: ${cajasState.error}',
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          )
+        else
+          DropdownButtonFormField<Caja>(
+            value: selectedCaja,
+            decoration: InputDecoration(
+              hintText: 'Seleccionar caja...',
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 14.sp,
+              ),
+              filled: true,
+              fillColor: const Color(0xFF2d2d2d),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0d6efd),
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            ),
+            dropdownColor: const Color(0xFF2d2d2d),
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+            items: [
+              DropdownMenuItem<Caja>(
+                value: null,
+                child: Text(
+                  'Todas las cajas',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ),
+              ...cajasState.cajas.map((caja) {
+                return DropdownMenuItem<Caja>(
+                  value: caja,
+                  child: Row(
+                    children: [
+                      // Punto verde si está abierta
+                      if (caja.isAbierta)
+                        Container(
+                          width: 8.w,
+                          height: 8.w,
+                          margin: EdgeInsets.only(right: 8.w),
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      // Texto con formato "CajaId - Nombre Usuario"
+                      Expanded(
+                        child: Text(
+                          '${caja.cajaId} - ${caja.nombreUsuario ?? "Usuario desconocido"}',
+                          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+            onChanged: (Caja? newValue) {
+              ref.read(cajasProvider.notifier).selectCaja(newValue);
+            },
+          ),
+      ],
+    );
+  }
+
   void _consultarReporte() {
     if (_startDate == null || _endDate == null) return;
+
+    final cajasState = ref.read(cajasProvider);
+    final cajaId = cajasState.selectedCaja?.cajaId;
 
     ref.read(reportesProvider.notifier).loadReporteArqueoCaja(
           startDate: _startDate!.toIso8601String().split('T')[0],
           endDate: _endDate!.toIso8601String().split('T')[0],
           tipoPago: _tipoPago,
+          cajaId: cajaId,
         );
+  }
+
+  void _limpiarFiltros() {
+    // Limpiar tipo de pago
+    setState(() {
+      _tipoPago = null;
+    });
+
+    // Limpiar filtro de cajas
+    ref.read(cajasProvider.notifier).selectCaja(null);
   }
 
   Widget _buildReporteArqueo(reporte) {
