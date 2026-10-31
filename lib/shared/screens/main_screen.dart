@@ -109,6 +109,15 @@ class _FacturasScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         title: const Text('Facturas'),
         actions: [
           IconButton(
@@ -116,10 +125,6 @@ class _FacturasScreen extends StatelessWidget {
             onPressed: () {
               Scaffold.of(context).openEndDrawer();
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {},
           ),
         ],
       ),
@@ -167,6 +172,15 @@ class _MovimientosScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         title: const Text('Movimientos'),
         actions: [
           IconButton(
@@ -174,10 +188,6 @@ class _MovimientosScreen extends StatelessWidget {
             onPressed: () {
               Scaffold.of(context).openEndDrawer();
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {},
           ),
         ],
       ),
@@ -225,6 +235,15 @@ class _ReportesScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         title: const Text('Reportes'),
         actions: [
           IconButton(
@@ -232,10 +251,6 @@ class _ReportesScreen extends StatelessWidget {
             onPressed: () {
               Scaffold.of(context).openEndDrawer();
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {},
           ),
         ],
       ),

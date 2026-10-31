@@ -35,6 +35,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         title: const Text('Dashboard'),
         actions: [
           IconButton(
@@ -42,10 +51,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             onPressed: () {
               Scaffold.of(context).openEndDrawer();
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {},
           ),
         ],
       ),
