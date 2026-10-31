@@ -134,6 +134,61 @@ class NotificacionesNotifier extends StateNotifier<NotificacionesState> {
     await loadNotificaciones();
   }
 
+  Future<void> goToPage(int pageNumber) async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // Obtener clienteId del JWT
+      final storage = CredentialsStorageService();
+      final token = await storage.getAccessToken();
+
+      if (token == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'No hay token de acceso',
+        );
+        return;
+      }
+
+      final payload = Jwt.parseJwt(token);
+      final clienteId = payload['clienteId'] as int;
+
+      final (notificaciones, pagination) = await getNotificacionesUseCase.call(
+        clienteId: clienteId,
+        pageSize: 10,
+        pageNumber: pageNumber,
+        estado: state.estadoFiltro,
+      );
+
+      state = state.copyWith(
+        notificaciones: notificaciones,
+        pagination: pagination,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
+    }
+  }
+
+  Future<void> nextPage() async {
+    if (state.pagination == null || !state.pagination!.hasMoreElements) return;
+
+    final nextPageNumber = state.pagination!.pageNumber + 1;
+    await goToPage(nextPageNumber);
+  }
+
+  Future<void> previousPage() async {
+    if (state.pagination == null || state.pagination!.pageNumber <= 1) return;
+
+    final previousPageNumber = state.pagination!.pageNumber - 1;
+    await goToPage(previousPageNumber);
+  }
+
   Future<bool> marcarComoLeida(int notificacionId) async {
     try {
       // Obtener clienteId del JWT

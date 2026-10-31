@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../../features/reportes/presentation/screens/reportes_screen.dart';
 import '../../features/chat/presentation/providers/chat_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
@@ -52,7 +53,7 @@ class MainScreen extends ConsumerWidget {
           _FacturasScreen(),
           _MovimientosScreen(),
           DashboardScreen(),
-          _ReportesScreen(),
+          ReportesScreen(),
           ChatScreen(),
         ],
       ),
@@ -207,42 +208,3 @@ class _MovimientosScreen extends StatelessWidget {
   }
 }
 
-class _ReportesScreen extends StatelessWidget {
-  const _ReportesScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.bar_chart,
-              size: 80.sp,
-              color: const Color(0xFF808080).withValues(alpha: 0.3),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Gestión de Reportes',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Módulo en desarrollo',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFFB0B0B0),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

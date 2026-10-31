@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     // Llamar al provider de autenticación
     final success = await ref.read(authProvider.notifier).login(
-          _emailController.text.trim(),
+          _emailController.text.trim().toLowerCase(),
           _passwordController.text,
         );
 
@@ -102,6 +102,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      textCapitalization: TextCapitalization.none,
                       decoration: InputDecoration(
                         labelText: 'Correo electrónico',
                         hintText: 'Ingresa tu correo',

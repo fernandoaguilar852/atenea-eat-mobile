@@ -11,6 +11,13 @@ class ApiConstants {
   // Endpoints de Dashboard y Reportes
   static const String dashboard = '/dashboard';
   static const String consultaEstadisticas = '/reportes/consulta-estadisticas';
+  static const String reportes = '/reportes';
+  static const String reporteVentas = '/reportes/ventas';
+  static const String reporteInventarioConsumido = '/reportes/inventario-consumido';
+  static const String reporteArqueoCaja = '/reportes/arqueo-caja';
+  static const String reporteStockProductos = '/reportes/stock-productos';
+  static const String reporteStockInsumos = '/reportes/stock-insumos';
+  static const String reporteCostoBeneficio = '/reportes/costo-beneficio';
 
   // Endpoints de Chat IA
   static const String chatQuery = '/chat/query';

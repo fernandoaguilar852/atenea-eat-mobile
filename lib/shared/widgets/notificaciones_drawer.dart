@@ -41,7 +41,11 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
   @override
   Widget build(BuildContext context) {
     final notificacionesState = ref.watch(notificacionesProvider);
-    final totalNotificaciones = notificacionesState.notificaciones.length;
+    final pagination = notificacionesState.pagination;
+
+    // Usar totalElement de paginación si existe, sino el length del array
+    final totalNotificaciones = pagination?.totalElement ?? notificacionesState.notificaciones.length;
+    final mostrando = notificacionesState.notificaciones.length;
 
     return Drawer(
       child: Column(
@@ -85,13 +89,25 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
                   ],
                 ),
                 SizedBox(height: 8.h),
-                Text(
-                  '$totalNotificaciones ${_tabController.index == 0 ? "pendientes" : "leídas"}',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 14.sp,
+                // Mostrar información de paginación
+                if (pagination != null && totalNotificaciones > 0)
+                  Text(
+                    mostrando < totalNotificaciones
+                        ? 'Mostrando $mostrando de $totalNotificaciones ${_tabController.index == 0 ? "pendientes" : "leídas"}'
+                        : '$totalNotificaciones ${_tabController.index == 0 ? "pendientes" : "leídas"}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 14.sp,
+                    ),
+                  )
+                else
+                  Text(
+                    '$totalNotificaciones ${_tabController.index == 0 ? "pendientes" : "leídas"}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 14.sp,
+                    ),
                   ),
-                ),
                 SizedBox(height: 16.h),
                 // TabBar
                 TabBar(
@@ -136,7 +152,7 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
   Widget _buildNotificacionesList() {
     final notificacionesState = ref.watch(notificacionesProvider);
 
-    if (notificacionesState.isLoading) {
+    if (notificacionesState.isLoading && notificacionesState.notificaciones.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
           color: Color(0xFF0d6efd),
@@ -207,21 +223,99 @@ class _NotificacionesDrawerState extends ConsumerState<NotificacionesDrawer>
       );
     }
 
-    return ListView.separated(
-      itemCount: notificacionesState.notificaciones.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final notificacion = notificacionesState.notificaciones[index];
-        return _NotificacionItem(
-          notificacionId: notificacion.notificacionId,
-          titulo: notificacion.titulo,
-          mensaje: notificacion.mensaje,
-          tipo: notificacion.tipo,
-          prioridad: notificacion.prioridad,
-          fecha: notificacion.createdAt,
-          isPendiente: notificacion.estado == 'PENDIENTE',
-        );
-      },
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.separated(
+            itemCount: notificacionesState.notificaciones.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final notificacion = notificacionesState.notificaciones[index];
+              return _NotificacionItem(
+                notificacionId: notificacion.notificacionId,
+                titulo: notificacion.titulo,
+                mensaje: notificacion.mensaje,
+                tipo: notificacion.tipo,
+                prioridad: notificacion.prioridad,
+                fecha: notificacion.createdAt,
+                isPendiente: notificacion.estado == 'PENDIENTE',
+              );
+            },
+          ),
+        ),
+        // Controles de paginación
+        if (notificacionesState.pagination != null)
+          _buildPaginationControls(notificacionesState),
+      ],
+    );
+  }
+
+  Widget _buildPaginationControls(NotificacionesState state) {
+    final pagination = state.pagination!;
+    final currentPage = pagination.pageNumber;
+    final hasNext = pagination.hasMoreElements;
+    final hasPrevious = currentPage > 1;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1a1a1a),
+        border: Border(
+          top: BorderSide(
+            color: Color(0xFF363636),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Botón anterior
+          TextButton.icon(
+            onPressed: hasPrevious && !state.isLoading
+                ? () => ref.read(notificacionesProvider.notifier).previousPage()
+                : null,
+            icon: Icon(Icons.chevron_left, size: 20.sp),
+            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+            style: TextButton.styleFrom(
+              foregroundColor: hasPrevious ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+          // Indicador de página
+          if (state.isLoading)
+            SizedBox(
+              width: 20.w,
+              height: 20.h,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF0d6efd),
+              ),
+            )
+          else
+            Text(
+              'Página $currentPage',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          // Botón siguiente
+          TextButton.icon(
+            onPressed: hasNext && !state.isLoading
+                ? () => ref.read(notificacionesProvider.notifier).nextPage()
+                : null,
+            icon: Icon(Icons.chevron_right, size: 20.sp),
+            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+            iconAlignment: IconAlignment.end,
+            style: TextButton.styleFrom(
+              foregroundColor: hasNext ? const Color(0xFF0d6efd) : const Color(0xFF6c757d),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
