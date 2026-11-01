@@ -7,6 +7,8 @@ import '../../domain/repositories/movimientos_repository.dart';
 import '../../domain/usecases/get_movimientos_usecase.dart';
 import '../../domain/usecases/registrar_movimiento_usecase.dart';
 import '../../domain/usecases/get_movimiento_detalle_usecase.dart';
+import '../../domain/usecases/actualizar_movimiento_usecase.dart';
+import '../../domain/usecases/eliminar_movimiento_usecase.dart';
 import '../../domain/entities/movimientos_response.dart';
 import '../../domain/entities/movimiento.dart';
 import '../../domain/entities/movimiento_detalle.dart';
@@ -37,6 +39,16 @@ final registrarMovimientoUseCaseProvider = Provider((ref) {
 final getMovimientoDetalleUseCaseProvider = Provider((ref) {
   final repository = ref.watch(movimientosRepositoryProvider);
   return GetMovimientoDetalleUseCase(repository);
+});
+
+final actualizarMovimientoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(movimientosRepositoryProvider);
+  return ActualizarMovimientoUseCase(repository);
+});
+
+final eliminarMovimientoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(movimientosRepositoryProvider);
+  return EliminarMovimientoUseCase(repository);
 });
 
 // Estado de movimientos

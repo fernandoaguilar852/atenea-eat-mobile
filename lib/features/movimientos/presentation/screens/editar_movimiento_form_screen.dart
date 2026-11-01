@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../domain/entities/movimiento_detalle.dart';
 import '../../../proveedores/domain/entities/proveedor.dart';
 import '../../../proveedores/presentation/widgets/proveedor_selector.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/movimientos_provider.dart';
 
 class EditarMovimientoFormScreen extends ConsumerStatefulWidget {
   final MovimientoDetalle detalle;
@@ -58,11 +60,11 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
         ),
         title: Row(
           children: [
-            Icon(Icons.info_outline, color: const Color(0xFF0d6efd), size: 28.sp),
+            Icon(Icons.security, color: const Color(0xFF0d6efd), size: 28.sp),
             SizedBox(width: 12.w),
             Expanded(
               child: Text(
-                'Información',
+                'Información de Seguridad',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16.sp,
@@ -73,7 +75,7 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
           ],
         ),
         content: Text(
-          'El tipo de movimiento (${widget.detalle.tipo.toUpperCase()}) no se puede editar. Solo puedes modificar los demás campos.',
+          'Por seguridad, solo puedes editar la CANTIDAD y las OBSERVACIONES. Los demás campos están bloqueados.',
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.9),
             fontSize: 14.sp,
@@ -158,26 +160,75 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
       return;
     }
 
-    if (_fechaSeleccionada == null) {
+    try {
+      // Obtener usuarioId del authProvider
+      final authState = ref.read(authProvider);
+      final usuarioId = authState.user?.usuarioId;
+
+      if (usuarioId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: Usuario no identificado'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final clienteId = authState.user?.clienteId;
+      if (clienteId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: Cliente no identificado'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Mostrar indicador de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: CircularProgressIndicator(color: const Color(0xFF0d6efd)),
+        ),
+      );
+
+      // Llamar al API de actualización
+      final useCase = ref.read(actualizarMovimientoUseCaseProvider);
+      await useCase(
+        movimientoId: widget.detalle.movimientoId,
+        clienteId: clienteId,
+        cantidad: double.parse(_cantidadController.text),
+        observacion: _observacionController.text.trim(),
+        updatedByUsuarioId: usuarioId,
+      );
+
+      // Cerrar indicador de carga
+      Navigator.of(context).pop();
+
+      // Mostrar mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Por favor selecciona una fecha'),
+          content: Text('Movimiento actualizado exitosamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Cerrar modal y notificar actualización
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      // Cerrar indicador de carga si está abierto
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al actualizar: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    // TODO: Implementar llamada al API de actualización
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Actualización en desarrollo'),
-        backgroundColor: Colors.orange,
-      ),
-    );
-
-    // Por ahora solo cerramos el modal
-    // Navigator.of(context).pop(true);
   }
 
   Color get _themeColor {
@@ -309,33 +360,30 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Proveedor', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                                Text('Proveedor', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12.sp, fontWeight: FontWeight.w600)),
                                 SizedBox(height: 6.h),
-                                InkWell(
-                                  onTap: _selectProveedor,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF2a2a2a),
-                                      borderRadius: BorderRadius.circular(6.r),
-                                      border: Border.all(color: const Color(0xFF404040)),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            _proveedorSeleccionado?.nombre ?? (widget.detalle.proveedorId != null ? 'ID: ${widget.detalle.proveedorId}' : 'Seleccionar'),
-                                            style: TextStyle(
-                                              color: _proveedorSeleccionado != null ? Colors.white : Colors.white.withValues(alpha: 0.4),
-                                              fontSize: 13.sp,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1a1a1a),
+                                    borderRadius: BorderRadius.circular(6.r),
+                                    border: Border.all(color: const Color(0xFF404040)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          widget.detalle.proveedorId != null ? 'ID: ${widget.detalle.proveedorId}' : 'N/A',
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(alpha: 0.4),
+                                            fontSize: 13.sp,
                                           ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        Icon(Icons.arrow_drop_down, color: _themeColor, size: 20.sp),
-                                      ],
-                                    ),
+                                      ),
+                                      Icon(Icons.lock, color: Colors.white.withValues(alpha: 0.3), size: 16.sp),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -345,35 +393,31 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
                       ),
                       SizedBox(height: 12.h),
 
-                      // Costo e Impuesto en fila
+                      // Costo e Impuesto en fila (bloqueados)
                       Row(
                         children: [
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Costo *', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                                Text('Costo *', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12.sp, fontWeight: FontWeight.w600)),
                                 SizedBox(height: 6.h),
                                 TextFormField(
                                   controller: _costoController,
+                                  enabled: false,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                  style: TextStyle(color: Colors.white, fontSize: 13.sp),
+                                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: '0.00',
                                     hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12.sp),
                                     filled: true,
-                                    fillColor: const Color(0xFF2a2a2a),
+                                    fillColor: const Color(0xFF1a1a1a),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r)),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
-                                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: _themeColor)),
+                                    disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
                                     contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
                                     isDense: true,
+                                    suffixIcon: Icon(Icons.lock, size: 16.sp, color: Colors.white.withValues(alpha: 0.3)),
                                   ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) return 'Requerido';
-                                    if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
-                                    return null;
-                                  },
                                 ),
                               ],
                             ),
@@ -383,28 +427,24 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Impuesto *', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                                Text('Impuesto *', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12.sp, fontWeight: FontWeight.w600)),
                                 SizedBox(height: 6.h),
                                 TextFormField(
                                   controller: _impuestoController,
+                                  enabled: false,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                  style: TextStyle(color: Colors.white, fontSize: 13.sp),
+                                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: '0.00',
                                     hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12.sp),
                                     filled: true,
-                                    fillColor: const Color(0xFF2a2a2a),
+                                    fillColor: const Color(0xFF1a1a1a),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r)),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
-                                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: _themeColor)),
+                                    disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
                                     contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
                                     isDense: true,
+                                    suffixIcon: Icon(Icons.lock, size: 16.sp, color: Colors.white.withValues(alpha: 0.3)),
                                   ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) return 'Requerido';
-                                    if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
-                                    return null;
-                                  },
                                 ),
                               ],
                             ),
@@ -413,54 +453,47 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
                       ),
                       SizedBox(height: 12.h),
 
-                      // Descuento
-                      Text('Descuento *', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                      // Descuento (bloqueado)
+                      Text('Descuento *', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12.sp, fontWeight: FontWeight.w600)),
                       SizedBox(height: 6.h),
                       TextFormField(
                         controller: _descuentoController,
+                        enabled: false,
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
-                        style: TextStyle(color: Colors.white, fontSize: 13.sp),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13.sp),
                         decoration: InputDecoration(
                           hintText: '0.00',
                           hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12.sp),
                           filled: true,
-                          fillColor: const Color(0xFF2a2a2a),
+                          fillColor: const Color(0xFF1a1a1a),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: _themeColor)),
+                          disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
                           contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
                           isDense: true,
+                          suffixIcon: Icon(Icons.lock, size: 16.sp, color: Colors.white.withValues(alpha: 0.3)),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) return 'Requerido';
-                          if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
-                          return null;
-                        },
                       ),
                       SizedBox(height: 12.h),
 
-                      // Fecha
-                      Text('Fecha *', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                      // Fecha (bloqueada)
+                      Text('Fecha *', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12.sp, fontWeight: FontWeight.w600)),
                       SizedBox(height: 6.h),
-                      InkWell(
-                        onTap: _selectFecha,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2a2a2a),
-                            borderRadius: BorderRadius.circular(6.r),
-                            border: Border.all(color: const Color(0xFF404040)),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _fechaSeleccionada != null ? DateFormat('dd/MM/yyyy').format(_fechaSeleccionada!) : 'Seleccionar',
-                                style: TextStyle(color: _fechaSeleccionada != null ? Colors.white : Colors.white.withValues(alpha: 0.4), fontSize: 13.sp),
-                              ),
-                              Icon(Icons.calendar_today, color: _themeColor, size: 16.sp),
-                            ],
-                          ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1a1a1a),
+                          borderRadius: BorderRadius.circular(6.r),
+                          border: Border.all(color: const Color(0xFF404040)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _fechaSeleccionada != null ? DateFormat('dd/MM/yyyy').format(_fechaSeleccionada!) : 'N/A',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13.sp),
+                            ),
+                            Icon(Icons.lock, color: Colors.white.withValues(alpha: 0.3), size: 16.sp),
+                          ],
                         ),
                       ),
                       SizedBox(height: 12.h),

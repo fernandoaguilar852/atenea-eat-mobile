@@ -138,6 +138,8 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
   }
 
   void _mostrarDialogoEliminar(BuildContext context) {
+    final TextEditingController motivoController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
@@ -203,6 +205,38 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
                 ],
               ),
             ),
+            SizedBox(height: 16.h),
+            Text(
+              'Motivo de eliminación *',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            TextField(
+              controller: motivoController,
+              maxLines: 2,
+              style: TextStyle(color: Colors.white, fontSize: 13.sp),
+              decoration: InputDecoration(
+                hintText: 'Ingresa el motivo de la eliminación...',
+                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12.sp),
+                filled: true,
+                fillColor: const Color(0xFF2a2a2a),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6.r),
+                  borderSide: BorderSide(color: const Color(0xFF404040)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6.r),
+                  borderSide: BorderSide(color: const Color(0xFFdc3545)),
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                isDense: true,
+              ),
+            ),
             SizedBox(height: 12.h),
             Text(
               'Esta acción no se puede deshacer.',
@@ -216,7 +250,10 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
+            onPressed: () {
+              motivoController.dispose();
+              Navigator.of(dialogContext).pop();
+            },
             child: Text(
               'Cancelar',
               style: TextStyle(
@@ -227,19 +264,83 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
           ),
           ElevatedButton(
             onPressed: () async {
+              // Validar que se ingresó un motivo
+              if (motivoController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Por favor ingresa el motivo de la eliminación'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+
               Navigator.of(dialogContext).pop(); // Cerrar diálogo de confirmación
 
-              // TODO: Implementar llamada al API de eliminación
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Eliminación en desarrollo'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
+              try {
+                // Obtener usuarioId del authProvider
+                final authState = ref.read(authProvider);
+                final usuarioId = authState.user?.usuarioId;
+                final clienteId = authState.user?.clienteId;
 
-              // Cuando esté implementado:
-              // Navigator.pop(context); // Cerrar modal de detalle
-              // ref.read(movimientosProvider.notifier).loadMovimientos(); // Recargar lista
+                if (usuarioId == null || clienteId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: Usuario no identificado'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  motivoController.dispose();
+                  return;
+                }
+
+                // Mostrar indicador de carga
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(
+                    child: CircularProgressIndicator(color: const Color(0xFFdc3545)),
+                  ),
+                );
+
+                // Llamar al API de eliminación
+                final useCase = ref.read(eliminarMovimientoUseCaseProvider);
+                await useCase(
+                  movimientoId: _detalle!.movimientoId,
+                  clienteId: clienteId,
+                  deletedByUsuarioId: usuarioId,
+                  deleteReason: motivoController.text.trim(),
+                );
+
+                motivoController.dispose();
+
+                // Cerrar indicador de carga
+                Navigator.of(context).pop();
+
+                // Mostrar mensaje de éxito
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Movimiento eliminado exitosamente'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                // Cerrar modal de detalle y recargar lista
+                Navigator.pop(context);
+                ref.read(movimientosProvider.notifier).loadMovimientos();
+              } catch (e) {
+                motivoController.dispose();
+
+                // Cerrar indicador de carga si está abierto
+                Navigator.of(context).pop();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error al eliminar: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFdc3545),
@@ -507,9 +608,10 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
                             ),
                           );
 
-                          // Si se actualizó, recargar la lista
+                          // Si se actualizó, recargar la lista y el detalle
                           if (resultado == true && mounted) {
                             ref.read(movimientosProvider.notifier).loadMovimientos();
+                            _loadDetalle(); // Recargar detalle en el modal
                           }
                         },
                         icon: Icon(Icons.edit, size: 18.sp),

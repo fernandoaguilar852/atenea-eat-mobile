@@ -4,6 +4,8 @@ import '../../domain/entities/movimiento_detalle.dart';
 import '../../domain/repositories/movimientos_repository.dart';
 import '../datasources/movimientos_remote_datasource.dart';
 import '../models/registrar_movimiento_request_dto.dart';
+import '../models/actualizar_movimiento_request_dto.dart';
+import '../models/eliminar_movimiento_request_dto.dart';
 
 class MovimientosRepositoryImpl implements MovimientosRepository {
   final MovimientosRemoteDatasource remoteDatasource;
@@ -85,6 +87,55 @@ class MovimientosRepositoryImpl implements MovimientosRepository {
         clienteId: clienteId,
       );
       return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<MovimientoDetalle> actualizarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required double cantidad,
+    required String observacion,
+    required int updatedByUsuarioId,
+  }) async {
+    try {
+      final request = ActualizarMovimientoRequestDto(
+        cantidad: cantidad,
+        observacion: observacion,
+        updatedByUsuarioId: updatedByUsuarioId,
+      );
+
+      final dto = await remoteDatasource.actualizarMovimiento(
+        movimientoId: movimientoId,
+        clienteId: clienteId,
+        request: request,
+      );
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> eliminarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required int deletedByUsuarioId,
+    required String deleteReason,
+  }) async {
+    try {
+      final request = EliminarMovimientoRequestDto(
+        deletedByUsuarioId: deletedByUsuarioId,
+        deleteReason: deleteReason,
+      );
+
+      await remoteDatasource.eliminarMovimiento(
+        movimientoId: movimientoId,
+        clienteId: clienteId,
+        request: request,
+      );
     } catch (e) {
       rethrow;
     }

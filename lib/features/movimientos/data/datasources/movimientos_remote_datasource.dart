@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../models/movimientos_response_dto.dart';
 import '../models/registrar_movimiento_request_dto.dart';
+import '../models/actualizar_movimiento_request_dto.dart';
+import '../models/eliminar_movimiento_request_dto.dart';
 import '../models/movimiento_dto.dart';
 import '../models/movimiento_detalle_dto.dart';
 
@@ -23,6 +25,18 @@ abstract class MovimientosRemoteDatasource {
   Future<MovimientoDetalleDto> getMovimientoDetalle({
     required int movimientoId,
     required int clienteId,
+  });
+
+  Future<MovimientoDetalleDto> actualizarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required ActualizarMovimientoRequestDto request,
+  });
+
+  Future<void> eliminarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required EliminarMovimientoRequestDto request,
   });
 }
 
@@ -107,6 +121,46 @@ class MovimientosRemoteDatasourceImpl implements MovimientosRemoteDatasource {
       return MovimientoDetalleDto.fromJson(response.data['data']);
     } else {
       throw Exception('Error al obtener detalle del movimiento - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<MovimientoDetalleDto> actualizarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required ActualizarMovimientoRequestDto request,
+  }) async {
+    print('📝 Actualizando movimiento $movimientoId: ${request.toJson()}');
+
+    final response = await dio.patch(
+      ApiConstants.buildUrl('${ApiConstants.movimientosInventario}/$movimientoId'),
+      queryParameters: {'clienteId': clienteId},
+      data: request.toJson(),
+    );
+
+    if (response.statusCode == 200) {
+      return MovimientoDetalleDto.fromJson(response.data['data']);
+    } else {
+      throw Exception('Error al actualizar movimiento - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<void> eliminarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required EliminarMovimientoRequestDto request,
+  }) async {
+    print('🗑️ Eliminando movimiento $movimientoId: ${request.toJson()}');
+
+    final response = await dio.delete(
+      ApiConstants.buildUrl('${ApiConstants.movimientosInventario}/$movimientoId'),
+      queryParameters: {'clienteId': clienteId},
+      data: request.toJson(),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar movimiento - Status: ${response.statusCode}');
     }
   }
 }

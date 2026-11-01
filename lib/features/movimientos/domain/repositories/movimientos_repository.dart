@@ -32,4 +32,19 @@ abstract class MovimientosRepository {
     required int movimientoId,
     required int clienteId,
   });
+
+  Future<MovimientoDetalle> actualizarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required double cantidad,
+    required String observacion,
+    required int updatedByUsuarioId,
+  });
+
+  Future<void> eliminarMovimiento({
+    required int movimientoId,
+    required int clienteId,
+    required int deletedByUsuarioId,
+    required String deleteReason,
+  });
 }
