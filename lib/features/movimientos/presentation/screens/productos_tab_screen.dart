@@ -57,7 +57,12 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
       );
     }
 
-    if (productosResponse == null || productosResponse.productos.isEmpty) {
+    // Filtrar solo productos que NO usan receta (usaReceta = false)
+    final productosFiltrados = productosResponse?.productos
+        .where((producto) => producto.usaReceta == false)
+        .toList() ?? [];
+
+    if (productosFiltrados.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -85,10 +90,10 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
         Expanded(
           child: ListView.separated(
             padding: EdgeInsets.all(16.w),
-            itemCount: productosResponse.productos.length,
+            itemCount: productosFiltrados.length,
             separatorBuilder: (_, __) => SizedBox(height: 12.h),
             itemBuilder: (context, index) {
-              final producto = productosResponse.productos[index];
+              final producto = productosFiltrados[index];
               final stockDisponible = producto.stockTotal - producto.stockReservado;
               final stockBajo = stockDisponible <= producto.stockMinimo;
 
@@ -195,7 +200,7 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
         ),
 
         // Controles de paginación
-        if (productosResponse.pagination.totalElement > 0)
+        if ((productosResponse?.pagination.totalElement ?? 0) > 0)
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             decoration: BoxDecoration(
@@ -227,14 +232,14 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
                   ),
                 ),
                 Text(
-                  'Página ${productosState.currentPage} de ${(productosResponse.pagination.totalElement / 10).ceil()}',
+                  'Página ${productosState.currentPage} de ${((productosResponse?.pagination.totalElement ?? 0) / 10).ceil()}',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14.sp,
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: productosResponse.pagination.hasMoreElements
+                  onPressed: (productosResponse?.pagination.hasMoreElements ?? false)
                       ? () {
                           ref.read(productosListProvider.notifier).loadProductos(
                                 pageNumber: productosState.currentPage + 1,
@@ -244,7 +249,7 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
                   label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
                   icon: Icon(Icons.chevron_right, size: 20.sp),
                   style: TextButton.styleFrom(
-                    foregroundColor: productosResponse.pagination.hasMoreElements
+                    foregroundColor: (productosResponse?.pagination.hasMoreElements ?? false)
                         ? const Color(0xFF0d6efd)
                         : const Color(0xFF6c757d),
                   ),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../insumos/domain/entities/insumo.dart';
+import '../../../proveedores/domain/entities/proveedor.dart';
+import '../../../proveedores/presentation/widgets/proveedor_selector.dart';
 import '../providers/movimientos_provider.dart';
 
 class SalidaInsumoFormScreen extends ConsumerStatefulWidget {
@@ -19,13 +21,13 @@ class SalidaInsumoFormScreen extends ConsumerStatefulWidget {
 
 class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _proveedorIdController = TextEditingController();
   final _costoController = TextEditingController();
   final _impuestoController = TextEditingController();
   final _descuentoController = TextEditingController();
   final _cantidadController = TextEditingController();
   final _observacionController = TextEditingController();
   DateTime? _fechaSeleccionada;
+  Proveedor? _proveedorSeleccionado;
 
   @override
   void initState() {
@@ -35,7 +37,6 @@ class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen>
 
   @override
   void dispose() {
-    _proveedorIdController.dispose();
     _costoController.dispose();
     _impuestoController.dispose();
     _descuentoController.dispose();
@@ -74,6 +75,19 @@ class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen>
     }
   }
 
+  Future<void> _selectProveedor() async {
+    final proveedor = await showDialog<Proveedor>(
+      context: context,
+      builder: (context) => const ProveedorSelector(),
+    );
+
+    if (proveedor != null) {
+      setState(() {
+        _proveedorSeleccionado = proveedor;
+      });
+    }
+  }
+
   Future<void> _registrarSalida() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -104,7 +118,7 @@ class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen>
 
     final success = await ref.read(registrarMovimientoProvider.notifier).registrarMovimiento(
           insumoId: widget.insumo.insumoId,
-          proveedorId: _proveedorIdController.text.isNotEmpty ? int.tryParse(_proveedorIdController.text) : null,
+          proveedorId: _proveedorSeleccionado?.proveedorId,
           tipo: 'salida',
           costo: double.parse(_costoController.text),
           impuesto: double.parse(_impuestoController.text),
@@ -261,20 +275,31 @@ class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen>
                               children: [
                                 Text('Proveedor', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
                                 SizedBox(height: 6.h),
-                                TextFormField(
-                                  controller: _proveedorIdController,
-                                  keyboardType: TextInputType.number,
-                                  style: TextStyle(color: Colors.white, fontSize: 13.sp),
-                                  decoration: InputDecoration(
-                                    hintText: 'ID',
-                                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12.sp),
-                                    filled: true,
-                                    fillColor: const Color(0xFF2a2a2a),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r)),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFF404040))),
-                                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: const Color(0xFFdc3545))),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-                                    isDense: true,
+                                InkWell(
+                                  onTap: _selectProveedor,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2a2a2a),
+                                      borderRadius: BorderRadius.circular(6.r),
+                                      border: Border.all(color: const Color(0xFF404040)),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _proveedorSeleccionado?.nombre ?? 'Seleccionar',
+                                            style: TextStyle(
+                                              color: _proveedorSeleccionado != null ? Colors.white : Colors.white.withValues(alpha: 0.4),
+                                              fontSize: 13.sp,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        Icon(Icons.arrow_drop_down, color: const Color(0xFFdc3545), size: 20.sp),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
