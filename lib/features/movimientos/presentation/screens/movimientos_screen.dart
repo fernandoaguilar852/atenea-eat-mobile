@@ -5,6 +5,7 @@ import '../providers/movimientos_provider.dart';
 import '../../../reportes/presentation/providers/reportes_provider.dart';
 import '../../../reportes/domain/entities/producto.dart';
 import '../../../reportes/domain/entities/insumo.dart';
+import 'productos_tab_screen.dart';
 
 class MovimientosScreen extends ConsumerStatefulWidget {
   const MovimientosScreen({super.key});
@@ -64,7 +65,7 @@ class _MovimientosScreenState extends ConsumerState<MovimientosScreen> with Sing
               controller: _tabController,
               children: const [
                 _TodosTab(),
-                _ProductosTab(),
+                ProductosTab(),
                 _InsumosTab(),
               ],
             ),
@@ -850,44 +851,6 @@ class _TodosTabState extends ConsumerState<_TodosTab> {
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-// Tab de Productos
-class _ProductosTab extends ConsumerWidget {
-  const _ProductosTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inventory_2,
-            size: 80.sp,
-            color: const Color(0xFF808080).withValues(alpha: 0.3),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Movimientos de Productos',
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Módulo en desarrollo',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: const Color(0xFFB0B0B0),
-            ),
-          ),
         ],
       ),
     );

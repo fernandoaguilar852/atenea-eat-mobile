@@ -5,7 +5,9 @@ import '../../data/datasources/movimientos_remote_datasource.dart';
 import '../../data/repositories/movimientos_repository_impl.dart';
 import '../../domain/repositories/movimientos_repository.dart';
 import '../../domain/usecases/get_movimientos_usecase.dart';
+import '../../domain/usecases/registrar_movimiento_usecase.dart';
 import '../../domain/entities/movimientos_response.dart';
+import '../../domain/entities/movimiento.dart';
 
 // Provider del datasource
 final movimientosRemoteDatasourceProvider = Provider<MovimientosRemoteDatasource>((ref) {
@@ -19,10 +21,15 @@ final movimientosRepositoryProvider = Provider<MovimientosRepository>((ref) {
   return MovimientosRepositoryImpl(remoteDatasource: datasource);
 });
 
-// Provider del use case
+// Providers de use cases
 final getMovimientosUseCaseProvider = Provider((ref) {
   final repository = ref.watch(movimientosRepositoryProvider);
   return GetMovimientosUseCase(repository);
+});
+
+final registrarMovimientoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(movimientosRepositoryProvider);
+  return RegistrarMovimientoUseCase(repository);
 });
 
 // Estado de movimientos
@@ -186,6 +193,113 @@ final movimientosProvider = StateNotifierProvider<MovimientosNotifier, Movimient
   final useCase = ref.watch(getMovimientosUseCaseProvider);
   return MovimientosNotifier(
     getMovimientosUseCase: useCase,
+    ref: ref,
+  );
+});
+
+// Estado para registrar movimiento
+class RegistrarMovimientoState {
+  final bool isLoading;
+  final String? error;
+  final Movimiento? movimientoCreado;
+
+  RegistrarMovimientoState({
+    this.isLoading = false,
+    this.error,
+    this.movimientoCreado,
+  });
+
+  RegistrarMovimientoState copyWith({
+    bool? isLoading,
+    String? error,
+    Movimiento? movimientoCreado,
+  }) {
+    return RegistrarMovimientoState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      movimientoCreado: movimientoCreado ?? this.movimientoCreado,
+    );
+  }
+}
+
+// Notifier para registrar movimiento
+class RegistrarMovimientoNotifier extends StateNotifier<RegistrarMovimientoState> {
+  final RegistrarMovimientoUseCase registrarMovimientoUseCase;
+  final Ref ref;
+
+  RegistrarMovimientoNotifier({
+    required this.registrarMovimientoUseCase,
+    required this.ref,
+  }) : super(RegistrarMovimientoState());
+
+  Future<bool> registrarMovimiento({
+    required int productoId,
+    int? insumoId,
+    int? proveedorId,
+    required String tipo,
+    required double costo,
+    required double impuesto,
+    required double descuentoUnidad,
+    required int cantidad,
+    required String observacion,
+    required String fecha,
+  }) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      final authState = ref.read(authProvider);
+      final clienteId = authState.user?.clienteId;
+      final usuarioId = authState.user?.usuarioId;
+
+      if (clienteId == null || usuarioId == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'No se encontró el cliente ID o usuario ID',
+        );
+        return false;
+      }
+
+      final movimiento = await registrarMovimientoUseCase(
+        productoId: productoId,
+        insumoId: insumoId,
+        usuarioId: usuarioId,
+        clienteId: clienteId,
+        proveedorId: proveedorId,
+        tipo: tipo,
+        costo: costo,
+        impuesto: impuesto,
+        descuentoUnidad: descuentoUnidad,
+        cantidad: cantidad,
+        observacion: observacion,
+        fecha: fecha,
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        error: null,
+        movimientoCreado: movimiento,
+      );
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  void reset() {
+    state = RegistrarMovimientoState();
+  }
+}
+
+// Provider del notifier para registrar movimiento
+final registrarMovimientoProvider = StateNotifierProvider<RegistrarMovimientoNotifier, RegistrarMovimientoState>((ref) {
+  final useCase = ref.watch(registrarMovimientoUseCaseProvider);
+  return RegistrarMovimientoNotifier(
+    registrarMovimientoUseCase: useCase,
     ref: ref,
   );
 });

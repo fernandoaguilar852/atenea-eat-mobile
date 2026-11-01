@@ -1,4 +1,5 @@
 import '../entities/movimientos_response.dart';
+import '../entities/movimiento.dart';
 
 abstract class MovimientosRepository {
   Future<MovimientosResponse> getMovimientos({
@@ -9,5 +10,20 @@ abstract class MovimientosRepository {
     String? fechaHasta,
     int? productoId,
     int? insumoId,
+  });
+
+  Future<Movimiento> registrarMovimiento({
+    required int productoId,
+    int? insumoId,
+    required int usuarioId,
+    required int clienteId,
+    int? proveedorId,
+    required String tipo,
+    required double costo,
+    required double impuesto,
+    required double descuentoUnidad,
+    required int cantidad,
+    required String observacion,
+    required String fecha,
   });
 }

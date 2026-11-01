@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../models/movimientos_response_dto.dart';
+import '../models/registrar_movimiento_request_dto.dart';
+import '../models/movimiento_dto.dart';
 
 abstract class MovimientosRemoteDatasource {
   Future<MovimientosResponseDto> getMovimientos({
@@ -11,6 +13,10 @@ abstract class MovimientosRemoteDatasource {
     String? fechaHasta,
     int? productoId,
     int? insumoId,
+  });
+
+  Future<MovimientoDto> registrarMovimiento({
+    required RegistrarMovimientoRequestDto request,
   });
 }
 
@@ -60,6 +66,24 @@ class MovimientosRemoteDatasourceImpl implements MovimientosRemoteDatasource {
       return MovimientosResponseDto.fromJson(response.data);
     } else {
       throw Exception('Error al obtener movimientos - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<MovimientoDto> registrarMovimiento({
+    required RegistrarMovimientoRequestDto request,
+  }) async {
+    print('📝 Registrando movimiento: ${request.toJson()}');
+
+    final response = await dio.post(
+      ApiConstants.buildUrl(ApiConstants.movimientosInventario),
+      data: request.toJson(),
+    );
+
+    if (response.statusCode == 201) {
+      return MovimientoDto.fromJson(response.data['data']);
+    } else {
+      throw Exception('Error al registrar movimiento - Status: ${response.statusCode}');
     }
   }
 }
