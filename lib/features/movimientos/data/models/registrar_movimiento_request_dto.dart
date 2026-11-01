@@ -1,5 +1,5 @@
 class RegistrarMovimientoRequestDto {
-  final int productoId;
+  final int? productoId;
   final int? insumoId;
   final int usuarioId;
   final int clienteId;
@@ -13,7 +13,7 @@ class RegistrarMovimientoRequestDto {
   final String fecha; // formato: "2026-07-29T17:05" o "2026-01-10"
 
   RegistrarMovimientoRequestDto({
-    required this.productoId,
+    this.productoId,
     this.insumoId,
     required this.usuarioId,
     required this.clienteId,
@@ -29,7 +29,6 @@ class RegistrarMovimientoRequestDto {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
-      'productoId': productoId,
       'usuarioId': usuarioId,
       'clienteId': clienteId,
       'tipo': tipo,
@@ -40,6 +39,10 @@ class RegistrarMovimientoRequestDto {
       'observacion': observacion,
       'fecha': fecha,
     };
+
+    if (productoId != null) {
+      map['productoId'] = productoId;
+    }
 
     if (insumoId != null) {
       map['insumoId'] = insumoId;

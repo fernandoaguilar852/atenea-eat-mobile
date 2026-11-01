@@ -28,6 +28,12 @@ class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen>
   DateTime? _fechaSeleccionada;
 
   @override
+  void initState() {
+    super.initState();
+    _fechaSeleccionada = DateTime.now();
+  }
+
+  @override
   void dispose() {
     _proveedorIdController.dispose();
     _costoController.dispose();
@@ -97,7 +103,6 @@ class _SalidaInsumoFormScreenState extends ConsumerState<SalidaInsumoFormScreen>
     }
 
     final success = await ref.read(registrarMovimientoProvider.notifier).registrarMovimiento(
-          productoId: 0, // No aplica para insumos
           insumoId: widget.insumo.insumoId,
           proveedorId: _proveedorIdController.text.isNotEmpty ? int.tryParse(_proveedorIdController.text) : null,
           tipo: 'salida',

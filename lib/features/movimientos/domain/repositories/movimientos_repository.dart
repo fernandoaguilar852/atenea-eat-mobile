@@ -13,7 +13,7 @@ abstract class MovimientosRepository {
   });
 
   Future<Movimiento> registrarMovimiento({
-    required int productoId,
+    int? productoId,
     int? insumoId,
     required int usuarioId,
     required int clienteId,

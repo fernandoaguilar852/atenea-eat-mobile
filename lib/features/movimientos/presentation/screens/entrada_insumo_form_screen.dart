@@ -28,6 +28,12 @@ class _EntradaInsumoFormScreenState extends ConsumerState<EntradaInsumoFormScree
   DateTime? _fechaSeleccionada;
 
   @override
+  void initState() {
+    super.initState();
+    _fechaSeleccionada = DateTime.now();
+  }
+
+  @override
   void dispose() {
     _proveedorIdController.dispose();
     _costoController.dispose();
@@ -39,11 +45,11 @@ class _EntradaInsumoFormScreenState extends ConsumerState<EntradaInsumoFormScree
   }
 
   String _formatFechaForApi(DateTime fecha) {
-    return DateFormat('yyyy-MM-ddTHH:mm').format(fecha);
+    return DateFormat('yyyy-MM-dd').format(fecha);
   }
 
   Future<void> _selectFecha() async {
-    final DateTime? pickedDate = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _fechaSeleccionada ?? DateTime.now(),
       firstDate: DateTime(2020),
@@ -61,34 +67,10 @@ class _EntradaInsumoFormScreenState extends ConsumerState<EntradaInsumoFormScree
       },
     );
 
-    if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_fechaSeleccionada ?? DateTime.now()),
-        builder: (context, child) {
-          return Theme(
-            data: ThemeData.dark().copyWith(
-              colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF0d6efd),
-                surface: Color(0xFF1a1a1a),
-              ),
-            ),
-            child: child!,
-          );
-        },
-      );
-
-      if (pickedTime != null) {
-        setState(() {
-          _fechaSeleccionada = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
-      }
+    if (picked != null) {
+      setState(() {
+        _fechaSeleccionada = picked;
+      });
     }
   }
 
@@ -108,7 +90,6 @@ class _EntradaInsumoFormScreenState extends ConsumerState<EntradaInsumoFormScree
     }
 
     final success = await ref.read(registrarMovimientoProvider.notifier).registrarMovimiento(
-          productoId: 0, // No aplica para insumos
           insumoId: widget.insumo.insumoId,
           proveedorId: _proveedorIdController.text.isNotEmpty ? int.tryParse(_proveedorIdController.text) : null,
           tipo: 'entrada',
@@ -390,7 +371,7 @@ class _EntradaInsumoFormScreenState extends ConsumerState<EntradaInsumoFormScree
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                _fechaSeleccionada != null ? DateFormat('dd/MM/yyyy HH:mm').format(_fechaSeleccionada!) : 'Seleccionar',
+                                _fechaSeleccionada != null ? DateFormat('dd/MM/yyyy').format(_fechaSeleccionada!) : 'Seleccionar',
                                 style: TextStyle(color: _fechaSeleccionada != null ? Colors.white : Colors.white.withValues(alpha: 0.4), fontSize: 13.sp),
                               ),
                               Icon(Icons.calendar_today, color: const Color(0xFF198754), size: 16.sp),

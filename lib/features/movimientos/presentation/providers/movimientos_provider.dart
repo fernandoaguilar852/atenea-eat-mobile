@@ -233,7 +233,7 @@ class RegistrarMovimientoNotifier extends StateNotifier<RegistrarMovimientoState
   }) : super(RegistrarMovimientoState());
 
   Future<bool> registrarMovimiento({
-    required int productoId,
+    int? productoId,
     int? insumoId,
     int? proveedorId,
     required String tipo,

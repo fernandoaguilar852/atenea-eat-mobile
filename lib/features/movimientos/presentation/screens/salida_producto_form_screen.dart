@@ -28,6 +28,12 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
   DateTime? _fechaSeleccionada;
 
   @override
+  void initState() {
+    super.initState();
+    _fechaSeleccionada = DateTime.now();
+  }
+
+  @override
   void dispose() {
     _proveedorIdController.dispose();
     _costoController.dispose();

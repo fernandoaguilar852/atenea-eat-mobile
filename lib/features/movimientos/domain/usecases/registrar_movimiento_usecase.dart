@@ -7,7 +7,7 @@ class RegistrarMovimientoUseCase {
   RegistrarMovimientoUseCase(this.repository);
 
   Future<Movimiento> call({
-    required int productoId,
+    int? productoId,
     int? insumoId,
     required int usuarioId,
     required int clienteId,

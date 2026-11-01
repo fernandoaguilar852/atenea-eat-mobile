@@ -37,7 +37,7 @@ class MovimientosRepositoryImpl implements MovimientosRepository {
 
   @override
   Future<Movimiento> registrarMovimiento({
-    required int productoId,
+    int? productoId,
     int? insumoId,
     required int usuarioId,
     required int clienteId,
