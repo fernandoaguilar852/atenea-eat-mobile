@@ -32,8 +32,6 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
     String? nombre,
   }) async {
     try {
-      print('📦 Obteniendo insumos - clienteId: $clienteId, page: $pageNumber');
-
       final queryParams = <String, dynamic>{
         'clienteId': clienteId,
         'pageSize': pageSize,
@@ -59,7 +57,6 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
         throw Exception('Error al obtener insumos - Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error en getInsumos: $e');
       rethrow;
     }
   }
@@ -70,8 +67,6 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
     required int clienteId,
   }) async {
     try {
-      print('📦 Obteniendo detalle de insumo - insumoId: $insumoId, clienteId: $clienteId');
-
       final response = await dio.get(
         ApiConstants.buildUrl('${ApiConstants.insumos}/$insumoId'),
         queryParameters: {
@@ -85,7 +80,6 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
         throw Exception('Error al obtener detalle del insumo - Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error en getInsumoDetail: $e');
       rethrow;
     }
   }

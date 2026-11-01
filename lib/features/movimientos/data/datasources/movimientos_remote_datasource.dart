@@ -74,9 +74,6 @@ class MovimientosRemoteDatasourceImpl implements MovimientosRemoteDatasource {
       queryParameters['insumoId'] = insumoId;
     }
 
-    // Debug log
-    print('🔍 Movimientos Query Parameters: $queryParameters');
-
     final response = await dio.get(
       ApiConstants.buildUrl(ApiConstants.movimientosInventario),
       queryParameters: queryParameters,
@@ -93,8 +90,6 @@ class MovimientosRemoteDatasourceImpl implements MovimientosRemoteDatasource {
   Future<MovimientoDto> registrarMovimiento({
     required RegistrarMovimientoRequestDto request,
   }) async {
-    print('📝 Registrando movimiento: ${request.toJson()}');
-
     final response = await dio.post(
       ApiConstants.buildUrl(ApiConstants.movimientosInventario),
       data: request.toJson(),
@@ -130,8 +125,6 @@ class MovimientosRemoteDatasourceImpl implements MovimientosRemoteDatasource {
     required int clienteId,
     required ActualizarMovimientoRequestDto request,
   }) async {
-    print('📝 Actualizando movimiento $movimientoId: ${request.toJson()}');
-
     final response = await dio.patch(
       ApiConstants.buildUrl('${ApiConstants.movimientosInventario}/$movimientoId'),
       queryParameters: {'clienteId': clienteId},
@@ -151,8 +144,6 @@ class MovimientosRemoteDatasourceImpl implements MovimientosRemoteDatasource {
     required int clienteId,
     required EliminarMovimientoRequestDto request,
   }) async {
-    print('🗑️ Eliminando movimiento $movimientoId: ${request.toJson()}');
-
     final response = await dio.delete(
       ApiConstants.buildUrl('${ApiConstants.movimientosInventario}/$movimientoId'),
       queryParameters: {'clienteId': clienteId},

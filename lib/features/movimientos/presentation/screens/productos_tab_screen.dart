@@ -6,8 +6,7 @@ import '../../../productos/presentation/providers/productos_provider.dart';
 import '../../../productos/domain/entities/producto.dart';
 import '../../../categorias/presentation/providers/categorias_provider.dart';
 import '../../../categorias/domain/entities/categoria.dart';
-import '../../../reportes/presentation/providers/reportes_provider.dart';
-import '../../../reportes/domain/entities/producto.dart' as reportes_producto;
+// import '../../../reportes/domain/entities/producto.dart' as reportes_producto; // TODO: Para funcionalidad futura
 import 'producto_detail_screen.dart';
 
 class ProductosTab extends ConsumerStatefulWidget {
@@ -21,7 +20,7 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   Categoria? _selectedCategoria;
-  reportes_producto.Producto? _selectedProducto;
+  // reportes_producto.Producto? _selectedProducto; // TODO: Implementar selección de producto
 
   @override
   void initState() {

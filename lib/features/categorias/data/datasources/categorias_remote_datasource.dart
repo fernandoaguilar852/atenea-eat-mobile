@@ -24,8 +24,6 @@ class CategoriasRemoteDatasourceImpl implements CategoriasRemoteDatasource {
       'activo': true,
     };
 
-    print('🔍 Categorías Query Parameters: $queryParameters');
-
     final response = await dio.get(
       ApiConstants.buildUrl(ApiConstants.tiposProducto),
       queryParameters: queryParameters,

@@ -11,7 +11,6 @@ import '../../domain/usecases/actualizar_movimiento_usecase.dart';
 import '../../domain/usecases/eliminar_movimiento_usecase.dart';
 import '../../domain/entities/movimientos_response.dart';
 import '../../domain/entities/movimiento.dart';
-import '../../domain/entities/movimiento_detalle.dart';
 
 // Provider del datasource
 final movimientosRemoteDatasourceProvider = Provider<MovimientosRemoteDatasource>((ref) {

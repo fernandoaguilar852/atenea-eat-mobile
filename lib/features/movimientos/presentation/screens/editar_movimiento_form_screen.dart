@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/movimiento_detalle.dart';
-import '../../../proveedores/domain/entities/proveedor.dart';
-import '../../../proveedores/presentation/widgets/proveedor_selector.dart';
+// import '../../../proveedores/domain/entities/proveedor.dart'; // TODO: Para funcionalidad futura
+// import '../../../proveedores/presentation/widgets/proveedor_selector.dart'; // TODO: Para funcionalidad futura
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/movimientos_provider.dart';
 
@@ -28,7 +28,7 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
   late final TextEditingController _cantidadController;
   late final TextEditingController _observacionController;
   DateTime? _fechaSeleccionada;
-  Proveedor? _proveedorSeleccionado;
+  // Proveedor? _proveedorSeleccionado; // TODO: Implementar selección de proveedor
 
   @override
   void initState() {
@@ -40,7 +40,6 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
     _cantidadController = TextEditingController(text: widget.detalle.cantidad.toString());
     _observacionController = TextEditingController(text: widget.detalle.observacion);
     _fechaSeleccionada = DateTime.parse(widget.detalle.fecha);
-    // TODO: Cargar proveedor seleccionado si existe proveedorId
 
     // Mostrar alerta informativa
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -112,48 +111,49 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
     super.dispose();
   }
 
-  String _formatFechaForApi(DateTime fecha) {
-    return DateFormat('yyyy-MM-dd').format(fecha);
-  }
+  // TODO: Métodos para funcionalidad futura
+  // String _formatFechaForApi(DateTime fecha) {
+  //   return DateFormat('yyyy-MM-dd').format(fecha);
+  // }
 
-  Future<void> _selectFecha() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _fechaSeleccionada ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF0d6efd),
-              surface: Color(0xFF1a1a1a),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
+  // Future<void> _selectFecha() async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: _fechaSeleccionada ?? DateTime.now(),
+  //     firstDate: DateTime(2020),
+  //     lastDate: DateTime(2030),
+  //     builder: (context, child) {
+  //       return Theme(
+  //         data: ThemeData.dark().copyWith(
+  //           colorScheme: const ColorScheme.dark(
+  //             primary: Color(0xFF0d6efd),
+  //             surface: Color(0xFF1a1a1a),
+  //           ),
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
+  //
+  //   if (picked != null) {
+  //     setState(() {
+  //       _fechaSeleccionada = picked;
+  //     });
+  //   }
+  // }
 
-    if (picked != null) {
-      setState(() {
-        _fechaSeleccionada = picked;
-      });
-    }
-  }
-
-  Future<void> _selectProveedor() async {
-    final proveedor = await showDialog<Proveedor>(
-      context: context,
-      builder: (context) => const ProveedorSelector(),
-    );
-
-    if (proveedor != null) {
-      setState(() {
-        _proveedorSeleccionado = proveedor;
-      });
-    }
-  }
+  // Future<void> _selectProveedor() async {
+  //   final proveedor = await showDialog<Proveedor>(
+  //     context: context,
+  //     builder: (context) => const ProveedorSelector(),
+  //   );
+  //
+  //   if (proveedor != null) {
+  //     setState(() {
+  //       _proveedorSeleccionado = proveedor;
+  //     });
+  //   }
+  // }
 
   Future<void> _actualizarMovimiento() async {
     if (!_formKey.currentState!.validate()) {
@@ -206,9 +206,11 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
       );
 
       // Cerrar indicador de carga
+      if (!mounted) return;
       Navigator.of(context).pop();
 
       // Mostrar mensaje de éxito
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Movimiento actualizado exitosamente'),
@@ -217,11 +219,14 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
       );
 
       // Cerrar modal y notificar actualización
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
       // Cerrar indicador de carga si está abierto
+      if (!mounted) return;
       Navigator.of(context).pop();
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al actualizar: ${e.toString()}'),

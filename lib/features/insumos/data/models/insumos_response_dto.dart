@@ -1,5 +1,4 @@
 import '../../../reportes/data/models/pagination_dto.dart';
-import '../../../reportes/domain/entities/pagination.dart';
 import '../../domain/entities/insumos_response.dart';
 import 'insumo_dto.dart';
 

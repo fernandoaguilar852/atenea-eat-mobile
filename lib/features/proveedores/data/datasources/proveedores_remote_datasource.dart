@@ -24,8 +24,6 @@ class ProveedoresRemoteDatasourceImpl implements ProveedoresRemoteDatasource {
     String? search,
   }) async {
     try {
-      print('📦 Obteniendo proveedores - clienteId: $clienteId, search: $search');
-
       final queryParams = <String, dynamic>{
         'clienteId': clienteId,
         'pageNumber': pageNumber,
@@ -47,7 +45,6 @@ class ProveedoresRemoteDatasourceImpl implements ProveedoresRemoteDatasource {
         throw Exception('Error al obtener proveedores - Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error en getProveedores: $e');
       rethrow;
     }
   }

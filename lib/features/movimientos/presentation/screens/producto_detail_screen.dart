@@ -195,11 +195,11 @@ class ProductoDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             Navigator.pop(context);
-                            final result = await showDialog<bool>(
+                            await showDialog<bool>(
                               context: context,
                               builder: (context) => EntradaProductoFormScreen(producto: producto),
                             );
-                            // Si result es true, significa que se registró exitosamente
+                            // TODO: Implementar lógica después del registro
                             // Podrías recargar la lista o el detalle aquí si es necesario
                           },
                           icon: Icon(Icons.add_circle_outline, size: 20.sp),
@@ -219,11 +219,11 @@ class ProductoDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             Navigator.pop(context);
-                            final result = await showDialog<bool>(
+                            await showDialog<bool>(
                               context: context,
                               builder: (context) => SalidaProductoFormScreen(producto: producto),
                             );
-                            // Si result es true, significa que se registró exitosamente
+                            // TODO: Implementar lógica después del registro
                             // Podrías recargar la lista o el detalle aquí si es necesario
                           },
                           icon: Icon(Icons.remove_circle_outline, size: 20.sp),

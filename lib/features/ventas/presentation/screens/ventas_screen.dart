@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../providers/ventas_provider.dart';
+import '../widgets/venta_detalle_modal.dart';
 
 class VentasScreen extends ConsumerStatefulWidget {
   const VentasScreen({super.key});
@@ -52,6 +53,30 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
         return const Color(0xFFffc107);
       default:
         return const Color(0xFF6c757d);
+    }
+  }
+
+  void _showVentaDetalle(int ventaId) async {
+    await ref.read(ventasProvider.notifier).loadVentaDetalle(ventaId: ventaId);
+
+    final state = ref.read(ventasProvider);
+
+    if (state.ventaDetallada != null && mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => VentaDetalleModal(
+          venta: state.ventaDetallada!,
+        ),
+      ).then((_) {
+        ref.read(ventasProvider.notifier).clearVentaDetalle();
+      });
+    } else if (state.errorDetail != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cargar detalle: ${state.errorDetail}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -136,19 +161,22 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
                             final estadoColor = _getEstadoColor(venta.estado);
                             final formaPagoColor = _getFormaPagoColor(venta.formaPago ?? 'N/A');
 
-                              return Card(
-                                color: const Color(0xFF1a1a1a),
-                                margin: EdgeInsets.only(bottom: 12.h),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  side: BorderSide(
-                                    color: const Color(0xFF404040),
-                                    width: 1,
+                              return InkWell(
+                                onTap: () => _showVentaDetalle(venta.ventaId),
+                                borderRadius: BorderRadius.circular(12.r),
+                                child: Card(
+                                  color: const Color(0xFF1a1a1a),
+                                  margin: EdgeInsets.only(bottom: 12.h),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    side: BorderSide(
+                                      color: const Color(0xFF404040),
+                                      width: 1,
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(12.w),
-                                  child: Column(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(12.w),
+                                    child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       // Header: Número de factura y estado
@@ -272,11 +300,12 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
                                           ),
                                         ],
                                       ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
-                          }).toList(),
+                          }),
 
                           // Paginación
                           if (pagination != null) ...[

@@ -45,8 +45,6 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
       queryParameters['tipoProductoId'] = tipoProductoId;
     }
 
-    print('🔍 Productos Query Parameters: $queryParameters');
-
     final response = await dio.get(
       ApiConstants.buildUrl(ApiConstants.products),
       queryParameters: queryParameters,
@@ -63,8 +61,6 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
     final queryParameters = {
       'clienteId': clienteId,
     };
-
-    print('🔍 Producto Detail Query Parameters: $queryParameters');
 
     final response = await dio.get(
       ApiConstants.buildUrl('${ApiConstants.products}/$productoId'),

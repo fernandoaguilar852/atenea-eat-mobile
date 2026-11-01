@@ -182,11 +182,11 @@ class InsumoDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             Navigator.pop(context);
-                            final result = await showDialog<bool>(
+                            await showDialog<bool>(
                               context: context,
                               builder: (context) => EntradaInsumoFormScreen(insumo: insumo),
                             );
-                            // Si result es true, significa que se registró exitosamente
+                            // TODO: Implementar lógica después del registro
                           },
                           icon: Icon(Icons.add_circle_outline, size: 20.sp),
                           label: Text('Entrada', style: TextStyle(fontSize: 14.sp)),
@@ -205,11 +205,11 @@ class InsumoDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             Navigator.pop(context);
-                            final result = await showDialog<bool>(
+                            await showDialog<bool>(
                               context: context,
                               builder: (context) => SalidaInsumoFormScreen(insumo: insumo),
                             );
-                            // Si result es true, significa que se registró exitosamente
+                            // TODO: Implementar lógica después del registro
                           },
                           icon: Icon(Icons.remove_circle_outline, size: 20.sp),
                           label: Text('Salida', style: TextStyle(fontSize: 14.sp)),

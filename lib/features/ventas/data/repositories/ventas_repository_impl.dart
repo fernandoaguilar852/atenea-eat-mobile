@@ -1,4 +1,5 @@
 import '../../domain/entities/ventas_response.dart';
+import '../../domain/entities/venta_detallada.dart';
 import '../../domain/repositories/ventas_repository.dart';
 import '../datasources/ventas_remote_datasource.dart';
 
@@ -18,6 +19,22 @@ class VentasRepositoryImpl implements VentasRepository {
         clienteId: clienteId,
         pageSize: pageSize,
         pageNumber: pageNumber,
+      );
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<VentaDetallada> getVentaDetalle({
+    required int ventaId,
+    required int clienteId,
+  }) async {
+    try {
+      final dto = await remoteDatasource.getVentaDetalle(
+        ventaId: ventaId,
+        clienteId: clienteId,
       );
       return dto.toEntity();
     } catch (e) {

@@ -315,9 +315,11 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
                 motivoController.dispose();
 
                 // Cerrar indicador de carga
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
 
                 // Mostrar mensaje de éxito
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Movimiento eliminado exitosamente'),
@@ -326,14 +328,17 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
                 );
 
                 // Cerrar modal de detalle y recargar lista
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ref.read(movimientosProvider.notifier).loadMovimientos();
               } catch (e) {
                 motivoController.dispose();
 
                 // Cerrar indicador de carga si está abierto
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
 
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Error al eliminar: ${e.toString()}'),
