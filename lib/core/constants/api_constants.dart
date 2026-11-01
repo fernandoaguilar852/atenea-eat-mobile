@@ -50,6 +50,9 @@ class ApiConstants {
   // Endpoints de Proveedores
   static const String proveedores = '/proveedores';
 
+  // Endpoints de Ventas
+  static const String ventas = '/ventas';
+
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
   static const String headerMessageUuid = 'message-uuid';
