@@ -9,6 +9,7 @@ abstract class InsumosRemoteDatasource {
     required int pageSize,
     required int pageNumber,
     bool? activo,
+    String? nombre,
   });
 
   Future<InsumoDto> getInsumoDetail({
@@ -28,6 +29,7 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
     required int pageSize,
     required int pageNumber,
     bool? activo,
+    String? nombre,
   }) async {
     try {
       print('📦 Obteniendo insumos - clienteId: $clienteId, page: $pageNumber');
@@ -40,6 +42,10 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
 
       if (activo != null) {
         queryParams['activo'] = activo;
+      }
+
+      if (nombre != null && nombre.isNotEmpty) {
+        queryParams['nombre'] = nombre;
       }
 
       final response = await dio.get(

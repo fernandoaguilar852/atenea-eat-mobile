@@ -7,6 +7,7 @@ abstract class InsumosRepository {
     required int pageSize,
     required int pageNumber,
     bool? activo,
+    String? nombre,
   });
 
   Future<Insumo> getInsumoDetail({

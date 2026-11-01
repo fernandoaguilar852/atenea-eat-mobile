@@ -14,6 +14,7 @@ class InsumosRepositoryImpl implements InsumosRepository {
     required int pageSize,
     required int pageNumber,
     bool? activo,
+    String? nombre,
   }) async {
     try {
       final dto = await remoteDatasource.getInsumos(
@@ -21,6 +22,7 @@ class InsumosRepositoryImpl implements InsumosRepository {
         pageSize: pageSize,
         pageNumber: pageNumber,
         activo: activo,
+        nombre: nombre,
       );
       return dto.toEntity();
     } catch (e) {

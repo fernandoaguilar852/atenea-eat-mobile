@@ -11,12 +11,14 @@ class GetInsumosUseCase {
     required int pageSize,
     required int pageNumber,
     bool? activo,
+    String? nombre,
   }) {
     return repository.getInsumos(
       clienteId: clienteId,
       pageSize: pageSize,
       pageNumber: pageNumber,
       activo: activo,
+      nombre: nombre,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,12 +14,47 @@ class InsumosTab extends ConsumerStatefulWidget {
 }
 
 class _InsumosTabState extends ConsumerState<InsumosTab> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(insumosListProvider.notifier).loadInsumos();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    // Solo buscar si tiene 3 o más caracteres
+    if (query.length >= 3) {
+      _debounce = Timer(const Duration(milliseconds: 500), () {
+        ref.read(insumosListProvider.notifier).loadInsumos(
+          nombre: query,
+        );
+      });
+    } else if (query.isEmpty) {
+      // Si está vacío, limpiar filtro
+      ref.read(insumosListProvider.notifier).loadInsumos(
+        nombre: null,
+      );
+    }
+  }
+
+  void _clearFilter() {
+    _searchController.clear();
+    ref.read(insumosListProvider.notifier).loadInsumos(
+      nombre: null,
+    );
   }
 
   void _showInsumoDetail(Insumo insumo) {
@@ -31,84 +67,139 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(insumosListProvider);
-
-    if (state.isLoading && state.insumosResponse == null) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: const Color(0xFF0d6efd),
-        ),
-      );
-    }
-
-    if (state.error != null && state.insumosResponse == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64.sp,
-              color: Colors.red,
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Error al cargar insumos',
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              state.error!,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: const Color(0xFFB0B0B0),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16.h),
-            ElevatedButton(
-              onPressed: () {
-                ref.read(insumosListProvider.notifier).loadInsumos();
-              },
-              child: Text('Reintentar'),
-            ),
-          ],
-        ),
-      );
-    }
-
     final insumos = state.insumosResponse?.insumos ?? [];
     final pagination = state.insumosResponse?.pagination;
 
-    if (insumos.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.inventory_outlined,
-              size: 80.sp,
-              color: const Color(0xFF808080).withValues(alpha: 0.3),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'No hay insumos disponibles',
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: const Color(0xFFB0B0B0),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Column(
       children: [
+        // Filtro de búsqueda
+        Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1a1a1a),
+            border: Border(
+              bottom: BorderSide(color: const Color(0xFF363636), width: 1),
+            ),
+          ),
+          child: Column(
+            children: [
+              TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                decoration: InputDecoration(
+                  hintText: 'Buscar insumo (mínimo 3 caracteres)...',
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 13.sp,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: const Color(0xFF0d6efd)),
+                  filled: true,
+                  fillColor: const Color(0xFF2a2a2a),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF404040)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF404040)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF0d6efd)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                ),
+              ),
+
+              // Botón limpiar filtro
+              if (_searchController.text.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 12.h),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: _clearFilter,
+                      icon: Icon(Icons.clear_all, size: 18.sp),
+                      label: Text('Limpiar búsqueda', style: TextStyle(fontSize: 14.sp)),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        padding: EdgeInsets.symmetric(vertical: 10.h),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        // Lista de insumos o estados
         Expanded(
-          child: ListView.builder(
+          child: state.isLoading && state.insumosResponse == null
+              ? Center(
+                  child: CircularProgressIndicator(
+                    color: const Color(0xFF0d6efd),
+                  ),
+                )
+              : state.error != null && state.insumosResponse == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64.sp,
+                            color: Colors.red,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Error al cargar insumos',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            state.error!,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: const Color(0xFFB0B0B0),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 16.h),
+                          ElevatedButton(
+                            onPressed: () {
+                              ref.read(insumosListProvider.notifier).loadInsumos();
+                            },
+                            child: Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : insumos.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inventory_outlined,
+                                size: 80.sp,
+                                color: const Color(0xFF808080).withValues(alpha: 0.3),
+                              ),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'No hay insumos disponibles',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  color: const Color(0xFFB0B0B0),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
             padding: EdgeInsets.all(16.w),
             itemCount: insumos.length,
             itemBuilder: (context, index) {
@@ -229,6 +320,7 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
             },
           ),
         ),
+
         // Paginación
         if (pagination != null)
           Container(

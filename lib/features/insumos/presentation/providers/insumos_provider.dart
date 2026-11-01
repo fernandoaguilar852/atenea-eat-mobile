@@ -32,31 +32,42 @@ final getInsumoDetailUseCaseProvider = Provider((ref) {
   return GetInsumoDetailUseCase(repository);
 });
 
+// Clase especial para valores undefined
+class _Undefined {
+  const _Undefined();
+}
+
+const _undefined = _Undefined();
+
 // Estado de la lista de insumos
 class InsumosListState {
   final InsumosResponse? insumosResponse;
   final bool isLoading;
   final String? error;
   final int currentPage;
+  final String? nombre;
 
   InsumosListState({
     this.insumosResponse,
     this.isLoading = false,
     this.error,
     this.currentPage = 1,
+    this.nombre,
   });
 
   InsumosListState copyWith({
     InsumosResponse? insumosResponse,
     bool? isLoading,
-    String? error,
+    Object? error = _undefined,
     int? currentPage,
+    Object? nombre = _undefined,
   }) {
     return InsumosListState(
       insumosResponse: insumosResponse ?? this.insumosResponse,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error == _undefined ? this.error : error as String?,
       currentPage: currentPage ?? this.currentPage,
+      nombre: nombre == _undefined ? this.nombre : nombre as String?,
     );
   }
 }
@@ -71,9 +82,16 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
     required this.ref,
   }) : super(InsumosListState());
 
-  Future<void> loadInsumos({int? pageNumber}) async {
+  Future<void> loadInsumos({
+    int? pageNumber,
+    Object? nombre = _undefined,
+  }) async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = state.copyWith(
+        isLoading: true,
+        error: null,
+        nombre: nombre,
+      );
 
       final authState = ref.read(authProvider);
       final clienteId = authState.user?.clienteId;
@@ -86,13 +104,14 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
         return;
       }
 
-      final page = pageNumber ?? state.currentPage;
+      final page = pageNumber ?? 1;
 
       final response = await getInsumosUseCase(
         clienteId: clienteId,
         pageSize: 10,
         pageNumber: page,
         activo: true,
+        nombre: state.nombre,
       );
 
       state = state.copyWith(
