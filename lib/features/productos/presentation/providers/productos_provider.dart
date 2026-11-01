@@ -32,31 +32,46 @@ final getProductoDetailUseCaseProvider = Provider((ref) {
   return GetProductoDetailUseCase(repository);
 });
 
+// Clase especial para valores undefined
+class _Undefined {
+  const _Undefined();
+}
+
+const _undefined = _Undefined();
+
 // Estado para el listado de productos
 class ProductosListState {
   final ProductosResponse? productosResponse;
   final bool isLoading;
   final String? error;
   final int currentPage;
+  final String? search;
+  final int? tipoProductoId;
 
   ProductosListState({
     this.productosResponse,
     this.isLoading = false,
     this.error,
     this.currentPage = 1,
+    this.search,
+    this.tipoProductoId,
   });
 
   ProductosListState copyWith({
     ProductosResponse? productosResponse,
     bool? isLoading,
-    String? error,
+    Object? error = _undefined,
     int? currentPage,
+    Object? search = _undefined,
+    Object? tipoProductoId = _undefined,
   }) {
     return ProductosListState(
       productosResponse: productosResponse ?? this.productosResponse,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error == _undefined ? this.error : error as String?,
       currentPage: currentPage ?? this.currentPage,
+      search: search == _undefined ? this.search : search as String?,
+      tipoProductoId: tipoProductoId == _undefined ? this.tipoProductoId : tipoProductoId as int?,
     );
   }
 }
@@ -71,9 +86,18 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     required this.ref,
   }) : super(ProductosListState());
 
-  Future<void> loadProductos({int? pageNumber}) async {
+  Future<void> loadProductos({
+    int? pageNumber,
+    Object? search = _undefined,
+    Object? tipoProductoId = _undefined,
+  }) async {
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = state.copyWith(
+        isLoading: true,
+        error: null,
+        search: search,
+        tipoProductoId: tipoProductoId,
+      );
 
       final authState = ref.read(authProvider);
       final clienteId = authState.user?.clienteId;
@@ -86,12 +110,14 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         return;
       }
 
-      final page = pageNumber ?? state.currentPage;
+      final page = pageNumber ?? 1;
 
       final response = await getProductosUseCase(
         clienteId: clienteId,
         pageSize: 10,
         pageNumber: page,
+        search: state.search,
+        tipoProductoId: state.tipoProductoId,
       );
 
       state = state.copyWith(

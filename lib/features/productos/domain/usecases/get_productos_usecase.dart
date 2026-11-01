@@ -10,11 +10,15 @@ class GetProductosUseCase {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? search,
+    int? tipoProductoId,
   }) {
     return repository.getProductos(
       clienteId: clienteId,
       pageSize: pageSize,
       pageNumber: pageNumber,
+      search: search,
+      tipoProductoId: tipoProductoId,
     );
   }
 }

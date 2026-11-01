@@ -8,6 +8,8 @@ abstract class ProductosRemoteDatasource {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? search,
+    int? tipoProductoId,
   });
 
   Future<ProductoDto> getProductoDetail({
@@ -26,12 +28,22 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? search,
+    int? tipoProductoId,
   }) async {
-    final queryParameters = {
+    final queryParameters = <String, dynamic>{
       'clienteId': clienteId,
       'pageSize': pageSize,
       'pageNumber': pageNumber,
     };
+
+    if (search != null && search.isNotEmpty) {
+      queryParameters['search'] = search;
+    }
+
+    if (tipoProductoId != null) {
+      queryParameters['tipoProductoId'] = tipoProductoId;
+    }
 
     print('🔍 Productos Query Parameters: $queryParameters');
 

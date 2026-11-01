@@ -6,6 +6,8 @@ abstract class ProductosRepository {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? search,
+    int? tipoProductoId,
   });
 
   Future<Producto> getProductoDetail({

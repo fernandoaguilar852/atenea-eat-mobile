@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../productos/presentation/providers/productos_provider.dart';
 import '../../../productos/domain/entities/producto.dart';
+import '../../../categorias/presentation/providers/categorias_provider.dart';
+import '../../../categorias/domain/entities/categoria.dart';
+import '../../../reportes/presentation/providers/reportes_provider.dart';
+import '../../../reportes/domain/entities/producto.dart' as reportes_producto;
 import 'producto_detail_screen.dart';
 
 class ProductosTab extends ConsumerStatefulWidget {
@@ -13,13 +18,58 @@ class ProductosTab extends ConsumerStatefulWidget {
 }
 
 class _ProductosTabState extends ConsumerState<ProductosTab> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  Categoria? _selectedCategoria;
+  reportes_producto.Producto? _selectedProducto;
+
   @override
   void initState() {
     super.initState();
-    // Cargar productos al iniciar
+    // Cargar productos y categorías al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(productosListProvider.notifier).loadProductos();
+      ref.read(categoriasProvider.notifier).loadCategorias();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      ref.read(productosListProvider.notifier).loadProductos(
+        search: query.isEmpty ? null : query,
+      );
+    });
+  }
+
+  void _onCategoriaChanged(Categoria? categoria) {
+    setState(() {
+      _selectedCategoria = categoria;
+    });
+
+    ref.read(productosListProvider.notifier).loadProductos(
+      tipoProductoId: categoria?.tipoProductoId,
+    );
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _selectedCategoria = null;
+      _searchController.clear();
+    });
+
+    ref.read(productosListProvider.notifier).loadProductos(
+      search: null,
+      tipoProductoId: null,
+    );
   }
 
   void _showProductoDetail(Producto producto) {
@@ -34,61 +84,166 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
   @override
   Widget build(BuildContext context) {
     final productosState = ref.watch(productosListProvider);
+    final categoriasState = ref.watch(categoriasProvider);
     final isLoading = productosState.isLoading;
     final error = productosState.error;
     final productosResponse = productosState.productosResponse;
-
-    if (isLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: const Color(0xFF0d6efd)),
-      );
-    }
-
-    if (error != null) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Text(
-            'Error: $error',
-            style: TextStyle(color: Colors.red, fontSize: 14.sp),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
 
     // Filtrar solo productos que NO usan receta (usaReceta = false)
     final productosFiltrados = productosResponse?.productos
         .where((producto) => producto.usaReceta == false)
         .toList() ?? [];
 
-    if (productosFiltrados.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.inventory_2_outlined,
-              size: 64.sp,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'No se encontraron productos',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 14.sp,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Column(
       children: [
+        // Filtros
+        Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1a1a1a),
+            border: Border(
+              bottom: BorderSide(color: const Color(0xFF363636), width: 1),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Campo de búsqueda
+              TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                decoration: InputDecoration(
+                  hintText: 'Buscar producto...',
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 13.sp,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: const Color(0xFF0d6efd)),
+                  filled: true,
+                  fillColor: const Color(0xFF2a2a2a),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF404040)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF404040)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF0d6efd)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                ),
+              ),
+              SizedBox(height: 12.h),
+
+              // Selector de categoría
+              DropdownButtonFormField<Categoria>(
+                value: _selectedCategoria,
+                onChanged: _onCategoriaChanged,
+                dropdownColor: const Color(0xFF2a2a2a),
+                style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                decoration: InputDecoration(
+                  labelText: 'Categoría',
+                  labelStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 13.sp,
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFF2a2a2a),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF404040)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF404040)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: const Color(0xFF0d6efd)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                ),
+                hint: Text(
+                  'Todas las categorías',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+                ),
+                items: [
+                  DropdownMenuItem<Categoria>(
+                    value: null,
+                    child: Text('Todas las categorías'),
+                  ),
+                  ...?categoriasState.categoriasResponse?.categorias.map((categoria) {
+                    return DropdownMenuItem<Categoria>(
+                      value: categoria,
+                      child: Text(categoria.nombre),
+                    );
+                  }),
+                ],
+              ),
+
+              // Botón limpiar filtros
+              if (_selectedCategoria != null || _searchController.text.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 12.h),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: _clearFilters,
+                      icon: Icon(Icons.clear_all, size: 18.sp),
+                      label: Text('Limpiar filtros', style: TextStyle(fontSize: 14.sp)),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        padding: EdgeInsets.symmetric(vertical: 10.h),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        // Lista de productos o estados
         Expanded(
-          child: ListView.separated(
+          child: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(color: const Color(0xFF0d6efd)),
+                )
+              : error != null
+                  ? Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.w),
+                        child: Text(
+                          'Error: $error',
+                          style: TextStyle(color: Colors.red, fontSize: 14.sp),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : productosFiltrados.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inventory_2_outlined,
+                                size: 64.sp,
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'No se encontraron productos',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
             padding: EdgeInsets.all(16.w),
             itemCount: productosFiltrados.length,
             separatorBuilder: (_, __) => SizedBox(height: 12.h),
