@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../../features/reportes/presentation/screens/reportes_screen.dart';
+import '../../features/movimientos/presentation/screens/movimientos_screen.dart';
 import '../../features/chat/presentation/providers/chat_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
@@ -51,7 +52,7 @@ class MainScreen extends ConsumerWidget {
         index: currentIndex,
         children: const [
           _FacturasScreen(),
-          _MovimientosScreen(),
+          MovimientosScreen(),
           DashboardScreen(),
           ReportesScreen(),
           ChatScreen(),
@@ -167,44 +168,3 @@ class _FacturasScreen extends StatelessWidget {
     );
   }
 }
-
-class _MovimientosScreen extends StatelessWidget {
-  const _MovimientosScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.swap_horiz,
-              size: 80.sp,
-              color: const Color(0xFF808080).withValues(alpha: 0.3),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Gestión de Movimientos',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Módulo en desarrollo',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFFB0B0B0),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-

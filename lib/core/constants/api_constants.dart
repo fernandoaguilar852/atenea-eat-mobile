@@ -44,6 +44,9 @@ class ApiConstants {
   // Endpoints de Insumos
   static const String insumos = '/insumos';
 
+  // Endpoints de Movimientos
+  static const String movimientosInventario = '/movimientos-inventario';
+
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
   static const String headerMessageUuid = 'message-uuid';
