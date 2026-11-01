@@ -6,8 +6,10 @@ import '../../data/repositories/movimientos_repository_impl.dart';
 import '../../domain/repositories/movimientos_repository.dart';
 import '../../domain/usecases/get_movimientos_usecase.dart';
 import '../../domain/usecases/registrar_movimiento_usecase.dart';
+import '../../domain/usecases/get_movimiento_detalle_usecase.dart';
 import '../../domain/entities/movimientos_response.dart';
 import '../../domain/entities/movimiento.dart';
+import '../../domain/entities/movimiento_detalle.dart';
 
 // Provider del datasource
 final movimientosRemoteDatasourceProvider = Provider<MovimientosRemoteDatasource>((ref) {
@@ -30,6 +32,11 @@ final getMovimientosUseCaseProvider = Provider((ref) {
 final registrarMovimientoUseCaseProvider = Provider((ref) {
   final repository = ref.watch(movimientosRepositoryProvider);
   return RegistrarMovimientoUseCase(repository);
+});
+
+final getMovimientoDetalleUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(movimientosRepositoryProvider);
+  return GetMovimientoDetalleUseCase(repository);
 });
 
 // Estado de movimientos

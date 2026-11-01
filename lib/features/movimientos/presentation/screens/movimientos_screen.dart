@@ -7,6 +7,7 @@ import '../../../reportes/domain/entities/producto.dart';
 import '../../../reportes/domain/entities/insumo.dart';
 import 'productos_tab_screen.dart';
 import 'insumos_tab_screen.dart';
+import '../widgets/movimiento_detalle_modal.dart';
 
 class MovimientosScreen extends ConsumerStatefulWidget {
   const MovimientosScreen({super.key});
@@ -709,72 +710,137 @@ class _TodosTabState extends ConsumerState<_TodosTab> {
               final isNegativo = movimiento.cantidad < 0;
               final iconData = movimiento.productoId != null ? Icons.inventory_2 : Icons.science;
 
-              return Card(
-                color: const Color(0xFF1a1a1a),
-                margin: EdgeInsets.only(bottom: 12.h),
-                child: Padding(
-                  padding: EdgeInsets.all(12.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            iconData,
-                            color: isNegativo ? Colors.red : Colors.green,
-                            size: 24.sp,
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  movimiento.nombre,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+              return InkWell(
+                onTap: () {
+                  // Validar si es tipo venta
+                  if (movimiento.tipo.toLowerCase() == 'venta') {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: const Color(0xFF1a1a1a),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          side: BorderSide(color: const Color(0xFFffc107), width: 2),
+                        ),
+                        title: Row(
+                          children: [
+                            Icon(Icons.block, color: const Color(0xFFffc107), size: 28.sp),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Text(
+                                'Acción no permitida',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                SizedBox(height: 4.h),
-                                Text(
-                                  movimiento.tipo.toUpperCase(),
-                                  style: TextStyle(
-                                    color: const Color(0xFF0d6efd),
-                                    fontSize: 12.sp,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
+                          ],
+                        ),
+                        content: Text(
+                          'Los movimientos de tipo VENTA no se pueden visualizar, editar ni eliminar.',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 14.sp,
                           ),
-                          Text(
-                            '${isNegativo ? '' : '+'}${movimiento.cantidad.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: isNegativo ? Colors.red : Colors.green,
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFffc107),
+                              foregroundColor: Colors.black,
+                              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                            ),
+                            child: Text(
+                              'Entendido',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        movimiento.observacion,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12.sp,
+                    );
+                    return;
+                  }
+
+                  showDialog(
+                    context: context,
+                    builder: (context) => MovimientoDetalleModal(
+                      movimientoId: movimiento.movimientoId,
+                    ),
+                  );
+                },
+                child: Card(
+                  color: const Color(0xFF1a1a1a),
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  child: Padding(
+                    padding: EdgeInsets.all(12.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              iconData,
+                              color: isNegativo ? Colors.red : Colors.green,
+                              size: 24.sp,
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    movimiento.nombre,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  Text(
+                                    movimiento.tipo.toUpperCase(),
+                                    style: TextStyle(
+                                      color: const Color(0xFF0d6efd),
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '${isNegativo ? '' : '+'}${movimiento.cantidad.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: isNegativo ? Colors.red : Colors.green,
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'Fecha: ${DateTime.parse(movimiento.fecha).toLocal().toString().split('.')[0]}',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 11.sp,
+                        SizedBox(height: 8.h),
+                        Text(
+                          movimiento.observacion,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12.sp,
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Fecha: ${DateTime.parse(movimiento.fecha).toLocal().toString().split('.')[0]}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

@@ -33,6 +33,8 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
   void initState() {
     super.initState();
     _fechaSeleccionada = DateTime.now();
+    _impuestoController.text = '0';
+    _descuentoController.text = '0';
   }
 
   @override

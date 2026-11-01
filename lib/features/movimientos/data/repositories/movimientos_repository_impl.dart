@@ -1,5 +1,6 @@
 import '../../domain/entities/movimientos_response.dart';
 import '../../domain/entities/movimiento.dart';
+import '../../domain/entities/movimiento_detalle.dart';
 import '../../domain/repositories/movimientos_repository.dart';
 import '../datasources/movimientos_remote_datasource.dart';
 import '../models/registrar_movimiento_request_dto.dart';
@@ -67,6 +68,22 @@ class MovimientosRepositoryImpl implements MovimientosRepository {
       );
 
       final dto = await remoteDatasource.registrarMovimiento(request: request);
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<MovimientoDetalle> getMovimientoDetalle({
+    required int movimientoId,
+    required int clienteId,
+  }) async {
+    try {
+      final dto = await remoteDatasource.getMovimientoDetalle(
+        movimientoId: movimientoId,
+        clienteId: clienteId,
+      );
       return dto.toEntity();
     } catch (e) {
       rethrow;

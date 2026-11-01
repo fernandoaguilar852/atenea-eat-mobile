@@ -1,5 +1,6 @@
 import '../entities/movimientos_response.dart';
 import '../entities/movimiento.dart';
+import '../entities/movimiento_detalle.dart';
 
 abstract class MovimientosRepository {
   Future<MovimientosResponse> getMovimientos({
@@ -25,5 +26,10 @@ abstract class MovimientosRepository {
     required int cantidad,
     required String observacion,
     required String fecha,
+  });
+
+  Future<MovimientoDetalle> getMovimientoDetalle({
+    required int movimientoId,
+    required int clienteId,
   });
 }
