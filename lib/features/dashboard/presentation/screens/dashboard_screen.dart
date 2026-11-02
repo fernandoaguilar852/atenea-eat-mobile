@@ -152,12 +152,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             icon: Icons.table_restaurant,
             color: const Color(0xFF0d6efd),
           ),
-          _StatCard(
-            title: 'Facturación',
-            value: '--',
-            subtitle: 'Cargando...',
-            icon: Icons.payments,
-            color: const Color(0xFF198754),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                ref.read(mainScreenIndexProvider.notifier).state = 0;
+              },
+              borderRadius: BorderRadius.circular(16.r),
+              splashColor: const Color(0xFF198754).withValues(alpha: 0.2),
+              highlightColor: const Color(0xFF198754).withValues(alpha: 0.1),
+              child: _StatCard(
+                title: 'Facturación',
+                value: '--',
+                subtitle: 'Cargando...',
+                icon: Icons.payments,
+                color: const Color(0xFF198754),
+              ),
+            ),
           ),
           _StatCard(
             title: 'Reservas',
@@ -180,16 +191,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             icon: Icons.restaurant,
             color: const Color(0xFFffc107),
           ),
-          GestureDetector(
-            onTap: () {
-              ref.read(mainScreenIndexProvider.notifier).state = 5;
-            },
-            child: _StatCard(
-              title: 'Alertas',
-              value: '--',
-              subtitle: 'Cargando...',
-              icon: Icons.notifications_active,
-              color: const Color(0xFFdc3545),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                ref.read(mainScreenIndexProvider.notifier).state = 5;
+              },
+              borderRadius: BorderRadius.circular(16.r),
+              splashColor: const Color(0xFFdc3545).withValues(alpha: 0.2),
+              highlightColor: const Color(0xFFdc3545).withValues(alpha: 0.1),
+              child: _StatCard(
+                title: 'Alertas',
+                value: '--',
+                subtitle: 'Cargando...',
+                icon: Icons.notifications_active,
+                color: const Color(0xFFdc3545),
+              ),
             ),
           ),
         ],
@@ -211,12 +228,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           icon: Icons.table_restaurant,
           color: const Color(0xFF0d6efd),
         ),
-        _StatCard(
-          title: 'Facturación',
-          value: currencyFormat.format(estadisticas.totalIngresos),
-          subtitle: '${estadisticas.cantidadFacturas} facturas',
-          icon: Icons.payments,
-          color: const Color(0xFF198754),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              ref.read(mainScreenIndexProvider.notifier).state = 0;
+            },
+            borderRadius: BorderRadius.circular(16.r),
+            splashColor: const Color(0xFF198754).withValues(alpha: 0.2),
+            highlightColor: const Color(0xFF198754).withValues(alpha: 0.1),
+            child: _StatCard(
+              title: 'Facturación',
+              value: currencyFormat.format(estadisticas.totalIngresos),
+              subtitle: '${estadisticas.cantidadFacturas} facturas',
+              icon: Icons.payments,
+              color: const Color(0xFF198754),
+            ),
+          ),
         ),
         _StatCard(
           title: 'Reservas',
@@ -239,16 +267,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           icon: Icons.restaurant,
           color: const Color(0xFFffc107),
         ),
-        GestureDetector(
-          onTap: () {
-            ref.read(mainScreenIndexProvider.notifier).state = 5;
-          },
-          child: _StatCard(
-            title: 'Alertas',
-            value: '${estadisticas.cantidadAlertas}',
-            subtitle: estadisticas.cantidadAlertas > 0 ? 'Requieren atención' : 'Todo bien',
-            icon: Icons.notifications_active,
-            color: const Color(0xFFdc3545),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              ref.read(mainScreenIndexProvider.notifier).state = 5;
+            },
+            borderRadius: BorderRadius.circular(16.r),
+            splashColor: const Color(0xFFdc3545).withValues(alpha: 0.2),
+            highlightColor: const Color(0xFFdc3545).withValues(alpha: 0.1),
+            child: _StatCard(
+              title: 'Alertas',
+              value: '${estadisticas.cantidadAlertas}',
+              subtitle: estadisticas.cantidadAlertas > 0 ? 'Requieren atención' : 'Todo bien',
+              icon: Icons.notifications_active,
+              color: const Color(0xFFdc3545),
+            ),
           ),
         ),
       ],
