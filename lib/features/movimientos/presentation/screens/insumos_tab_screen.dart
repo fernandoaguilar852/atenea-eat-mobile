@@ -15,7 +15,9 @@ class InsumosTab extends ConsumerStatefulWidget {
 
 class _InsumosTabState extends ConsumerState<InsumosTab> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   Timer? _debounce;
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
@@ -23,11 +25,21 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(insumosListProvider.notifier).loadInsumos();
     });
+
+    // Listener para mostrar/ocultar botón de scroll to top
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -70,8 +82,10 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
     final insumos = state.insumosResponse?.insumos ?? [];
     final pagination = state.insumosResponse?.pagination;
 
-    return Column(
+    return Stack(
       children: [
+        Column(
+          children: [
         // Filtro de búsqueda
         Container(
           padding: EdgeInsets.all(16.w),
@@ -200,6 +214,7 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
                           ),
                         )
                       : ListView.builder(
+            controller: _scrollController,
             padding: EdgeInsets.all(16.w),
             itemCount: insumos.length,
             itemBuilder: (context, index) {
@@ -380,6 +395,42 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
                   ),
                 ),
               ],
+            ),
+          ),
+          ],
+        ),
+
+        // Botón de scroll to top
+        if (_showScrollToTop)
+          Positioned(
+            bottom: 16.h,
+            right: 16.w,
+            child: Material(
+              color: const Color(0xFF0d6efd),
+              borderRadius: BorderRadius.circular(22.r),
+              elevation: 4,
+              child: InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                borderRadius: BorderRadius.circular(22.r),
+                child: Container(
+                  width: 44.w,
+                  height: 44.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22.r),
+                  ),
+                  child: Icon(
+                    Icons.arrow_upward,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
             ),
           ),
       ],

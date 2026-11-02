@@ -18,8 +18,10 @@ class ProductosTab extends ConsumerStatefulWidget {
 
 class _ProductosTabState extends ConsumerState<ProductosTab> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   Timer? _debounce;
   Categoria? _selectedCategoria;
+  bool _showScrollToTop = false;
   // reportes_producto.Producto? _selectedProducto; // TODO: Implementar selección de producto
 
   @override
@@ -30,11 +32,21 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
       ref.read(productosListProvider.notifier).loadProductos();
       ref.read(categoriasProvider.notifier).loadCategorias();
     });
+
+    // Listener para mostrar/ocultar botón de scroll to top
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -93,8 +105,10 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
         .where((producto) => producto.usaReceta == false)
         .toList() ?? [];
 
-    return Column(
+    return Stack(
       children: [
+        Column(
+          children: [
         // Filtros
         Container(
           padding: EdgeInsets.all(16.w),
@@ -243,6 +257,7 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
                           ),
                         )
                       : ListView.separated(
+            controller: _scrollController,
             padding: EdgeInsets.all(16.w),
             itemCount: productosFiltrados.length,
             separatorBuilder: (_, __) => SizedBox(height: 12.h),
@@ -409,6 +424,42 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
                   ),
                 ),
               ],
+            ),
+          ),
+          ],
+        ),
+
+        // Botón de scroll to top
+        if (_showScrollToTop)
+          Positioned(
+            bottom: 16.h,
+            right: 16.w,
+            child: Material(
+              color: const Color(0xFF0d6efd),
+              borderRadius: BorderRadius.circular(22.r),
+              elevation: 4,
+              child: InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                borderRadius: BorderRadius.circular(22.r),
+                child: Container(
+                  width: 44.w,
+                  height: 44.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22.r),
+                  ),
+                  child: Icon(
+                    Icons.arrow_upward,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
             ),
           ),
       ],

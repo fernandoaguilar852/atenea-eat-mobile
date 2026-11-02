@@ -10,11 +10,17 @@ class GetResolucionesUseCase {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    bool? activo,
+    String? startDate,
+    String? endDate,
   }) async {
     return await repository.getResoluciones(
       clienteId: clienteId,
       pageSize: pageSize,
       pageNumber: pageNumber,
+      activo: activo,
+      startDate: startDate,
+      endDate: endDate,
     );
   }
 }
