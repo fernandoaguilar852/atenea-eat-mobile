@@ -48,6 +48,11 @@ class VentasState {
   final String? error;
   final String? errorDetail;
   final int currentPage;
+  final String? startDate; // Formato: yyyy-MM-dd
+  final String? endDate;   // Formato: yyyy-MM-dd
+  final String? estado;    // Valores: 'pagada', 'anulada', 'pendiente'
+  final int? cajaId;       // Filtro de caja
+  final int? operadorId;   // Filtro de operador
 
   VentasState({
     this.ventasResponse,
@@ -57,6 +62,11 @@ class VentasState {
     this.error,
     this.errorDetail,
     this.currentPage = 1,
+    this.startDate,
+    this.endDate,
+    this.estado,
+    this.cajaId,
+    this.operadorId,
   });
 
   VentasState copyWith({
@@ -67,6 +77,11 @@ class VentasState {
     Object? error = const _Undefined(),
     Object? errorDetail = const _Undefined(),
     Object? currentPage = const _Undefined(),
+    Object? startDate = const _Undefined(),
+    Object? endDate = const _Undefined(),
+    Object? estado = const _Undefined(),
+    Object? cajaId = const _Undefined(),
+    Object? operadorId = const _Undefined(),
   }) {
     return VentasState(
       ventasResponse: ventasResponse is _Undefined ? this.ventasResponse : ventasResponse as VentasResponse?,
@@ -76,6 +91,11 @@ class VentasState {
       error: error is _Undefined ? this.error : error as String?,
       errorDetail: errorDetail is _Undefined ? this.errorDetail : errorDetail as String?,
       currentPage: currentPage is _Undefined ? this.currentPage : currentPage as int,
+      startDate: startDate is _Undefined ? this.startDate : startDate as String?,
+      endDate: endDate is _Undefined ? this.endDate : endDate as String?,
+      estado: estado is _Undefined ? this.estado : estado as String?,
+      cajaId: cajaId is _Undefined ? this.cajaId : cajaId as int?,
+      operadorId: operadorId is _Undefined ? this.operadorId : operadorId as int?,
     );
   }
 }
@@ -92,8 +112,29 @@ class VentasNotifier extends StateNotifier<VentasState> {
     required this.ref,
   }) : super(VentasState());
 
-  Future<void> loadVentas({int? pageNumber}) async {
+  Future<void> loadVentas({
+    int? pageNumber,
+    String? startDate,
+    String? endDate,
+    String? estado,
+    int? cajaId,
+    int? operadorId,
+  }) async {
     try {
+      // Validar fechas si ambas están presentes
+      if (startDate != null && endDate != null) {
+        final start = DateTime.parse(startDate);
+        final end = DateTime.parse(endDate);
+
+        if (end.isBefore(start)) {
+          state = state.copyWith(
+            error: 'La fecha final debe ser mayor o igual a la fecha inicial',
+            isLoading: false,
+          );
+          return;
+        }
+      }
+
       state = state.copyWith(
         isLoading: true,
         error: null,
@@ -111,11 +152,21 @@ class VentasNotifier extends StateNotifier<VentasState> {
       }
 
       final page = pageNumber ?? state.currentPage;
+      final filterStartDate = startDate ?? state.startDate;
+      final filterEndDate = endDate ?? state.endDate;
+      final filterEstado = estado ?? state.estado;
+      final filterCajaId = cajaId ?? state.cajaId;
+      final filterOperadorId = operadorId ?? state.operadorId;
 
       final response = await getVentasUseCase(
         clienteId: clienteId,
         pageSize: 20, // 20 items por página según requerimiento
         pageNumber: page,
+        startDate: filterStartDate,
+        endDate: filterEndDate,
+        estado: filterEstado,
+        cajaId: filterCajaId,
+        operadorId: filterOperadorId,
       );
 
       state = state.copyWith(
@@ -123,6 +174,11 @@ class VentasNotifier extends StateNotifier<VentasState> {
         isLoading: false,
         error: null,
         currentPage: page,
+        startDate: filterStartDate,
+        endDate: filterEndDate,
+        estado: filterEstado,
+        cajaId: filterCajaId,
+        operadorId: filterOperadorId,
       );
     } catch (e) {
       state = state.copyWith(
@@ -252,6 +308,92 @@ class VentasNotifier extends StateNotifier<VentasState> {
       ventaDetallada: null,
       errorDetail: null,
     );
+  }
+
+  Future<void> setFilters({
+    String? startDate,
+    String? endDate,
+    String? estado,
+    int? cajaId,
+    int? operadorId,
+  }) async {
+    // Validar fechas si ambas están presentes
+    if (startDate != null && endDate != null) {
+      try {
+        final start = DateTime.parse(startDate);
+        final end = DateTime.parse(endDate);
+
+        if (end.isBefore(start)) {
+          state = state.copyWith(
+            error: 'La fecha final debe ser mayor o igual a la fecha inicial',
+          );
+          return;
+        }
+      } catch (e) {
+        state = state.copyWith(
+          error: 'Formato de fecha inválido. Use el formato yyyy-MM-dd',
+        );
+        return;
+      }
+    }
+
+    // Aplicar filtros y recargar desde la página 1
+    await loadVentas(
+      pageNumber: 1,
+      startDate: startDate,
+      endDate: endDate,
+      estado: estado,
+      cajaId: cajaId,
+      operadorId: operadorId,
+    );
+  }
+
+  Future<void> clearFilters() async {
+    try {
+      state = state.copyWith(
+        isLoading: true,
+        error: null,
+      );
+
+      final authState = ref.read(authProvider);
+      final clienteId = authState.user?.clienteId;
+
+      if (clienteId == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'No se encontró el cliente ID',
+        );
+        return;
+      }
+
+      final response = await getVentasUseCase(
+        clienteId: clienteId,
+        pageSize: 20,
+        pageNumber: 1,
+        startDate: null,
+        endDate: null,
+        estado: null,
+        cajaId: null,
+        operadorId: null,
+      );
+
+      state = state.copyWith(
+        ventasResponse: response,
+        isLoading: false,
+        error: null,
+        currentPage: 1,
+        startDate: null,
+        endDate: null,
+        estado: null,
+        cajaId: null,
+        operadorId: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
   }
 }
 

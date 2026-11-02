@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../constants/api_constants.dart';
 import '../services/credentials_storage_service.dart';
+import '../services/navigation_service.dart';
 
 // Provider del cliente Dio
 final dioProvider = Provider<Dio>((ref) {
@@ -50,8 +51,18 @@ final dioProvider = Provider<Dio>((ref) {
       onError: (error, handler) async {
         // Manejo de errores global
         if (error.response?.statusCode == 401) {
-          // Token expirado - en el futuro implementar refresh token
-          // Por ahora simplemente propagar el error
+          // Token expirado - limpiar sesión y redirigir al login
+          try {
+            // Limpiar tokens almacenados
+            final storage = CredentialsStorageService();
+            await storage.clearTokens();
+
+            // Redirigir al login (el estado de auth se limpiará automáticamente)
+            NavigationService().navigateToLogin();
+          } catch (e) {
+            // Si hay error al limpiar, igual redirigir al login
+            NavigationService().navigateToLogin();
+          }
         }
         return handler.next(error);
       },

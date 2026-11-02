@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/navigation_service.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'shared/screens/main_screen.dart';
 
 // Configuración del Router
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/login',
     routes: [
       GoRoute(
@@ -23,6 +24,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  // Configurar el servicio de navegación global
+  NavigationService().setRouter(router);
+
+  return router;
 });
 
 class MyApp extends ConsumerWidget {

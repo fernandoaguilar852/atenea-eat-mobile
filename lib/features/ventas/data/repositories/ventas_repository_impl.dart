@@ -13,12 +13,22 @@ class VentasRepositoryImpl implements VentasRepository {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? startDate,
+    String? endDate,
+    String? estado,
+    int? cajaId,
+    int? operadorId,
   }) async {
     try {
       final dto = await remoteDatasource.getVentas(
         clienteId: clienteId,
         pageSize: pageSize,
         pageNumber: pageNumber,
+        startDate: startDate,
+        endDate: endDate,
+        estado: estado,
+        cajaId: cajaId,
+        operadorId: operadorId,
       );
       return dto.toEntity();
     } catch (e) {

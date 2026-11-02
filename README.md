@@ -19,6 +19,11 @@ ATENEA EAT es una aplicación móvil multiplataforma (iOS y Android) diseñada p
 - ✅ Arquitectura Clean (Domain, Data, Presentation)
 - ✅ State Management con Riverpod
 - ✅ Diseño responsive con ScreenUtil
+- ✅ **Manejo automático de expiración de token JWT**
+  - Detección de error 401 en todas las peticiones
+  - Cierre de sesión automático
+  - Redirección al login
+  - Limpieza de credenciales almacenadas
 
 ## 🏗️ Arquitectura
 
@@ -29,8 +34,10 @@ lib/
 ├── core/                           # Núcleo de la aplicación
 │   ├── config/                     # Configuraciones
 │   ├── constants/                  # Constantes (API, etc.)
-│   ├── providers/                  # Providers globales
-│   ├── services/                   # Servicios (Storage, Auth, etc.)
+│   ├── providers/                  # Providers globales (Dio con interceptores)
+│   ├── services/                   # Servicios
+│   │   ├── credentials_storage_service.dart
+│   │   └── navigation_service.dart  # Navegación global sin context
 │   ├── theme/                      # Tema de la app
 │   └── utils/                      # Utilidades
 │
@@ -113,11 +120,11 @@ El contraste entre el fondo negro y los colores vibrantes crea una experiencia v
 ## 📦 Dependencias Principales
 
 - `flutter_riverpod` - State Management
-- `go_router` - Navegación
-- `dio` - HTTP Client
+- `go_router` - Navegación declarativa
+- `dio` - HTTP Client con interceptores
 - `flutter_screenutil` - Diseño responsive
 - `hive` - Base de datos local
-- `flutter_secure_storage` - Almacenamiento seguro
+- `flutter_secure_storage` - Almacenamiento seguro de tokens
 - `local_auth` - Autenticación biométrica
 - `fl_chart` - Gráficos y estadísticas
 
@@ -154,6 +161,36 @@ El contraste entre el fondo negro y los colores vibrantes crea una experiencia v
 - Pull to refresh
 - Saludo dinámico según hora del día
 
+## 🔒 Seguridad y Autenticación
+
+### Manejo de Token JWT
+
+La aplicación implementa un sistema robusto de manejo de tokens JWT:
+
+**Interceptor Global de Dio** (`core/providers/dio_provider.dart`):
+- Detecta automáticamente errores 401 (Unauthorized)
+- Limpia tokens almacenados en secure storage
+- Redirige al login usando NavigationService
+- Previene estados inconsistentes
+
+**Flujo de Expiración:**
+```
+Usuario hace petición → Token expirado en servidor → 401 Response
+    ↓
+Interceptor detecta 401
+    ↓
+1. Limpia tokens del storage
+2. Redirige a /login
+    ↓
+Usuario vuelve al login automáticamente
+```
+
+**Ventajas:**
+- ✅ Automático en todas las peticiones HTTP
+- ✅ No requiere código adicional en cada módulo
+- ✅ Navegación sin BuildContext usando NavigationService
+- ✅ Experiencia de usuario fluida
+
 ## 🎯 Estado del Proyecto
 
 - ✅ Login funcional (UI completa con tema oscuro)
@@ -167,13 +204,33 @@ El contraste entre el fondo negro y los colores vibrantes crea una experiencia v
   - Cards con colores vibrantes
   - Tipografía optimizada para contraste
   - Bordes sutiles y modernos
+- ✅ **Seguridad JWT**
+  - Manejo automático de token expirado
+  - Almacenamiento seguro de credenciales
+  - Interceptores HTTP globales
 - ✅ Arquitectura Clean implementada
-- ⏳ Integración con API (pendiente)
-- ⏳ Autenticación real (pendiente)
-- ⏳ Implementación de módulos: Mesas, Órdenes, Facturación, Inventario (pendiente)
+- ✅ Integración con API real
+- ✅ Autenticación con JWT
+- ✅ Módulos implementados: Dashboard, Ventas, Movimientos, Productos, Insumos, Reportes
+
+## 🛠️ Servicios Core
+
+### NavigationService
+Servicio singleton para navegación global sin BuildContext:
+- `navigateToLogin()` - Redirige al login
+- `navigateToMain()` - Redirige al main
+- `goBack()` - Retrocede en navegación
+
+Usado principalmente por el interceptor de Dio para manejar 401.
+
+### CredentialsStorageService
+Almacenamiento seguro usando Flutter Secure Storage:
+- Tokens JWT (access y refresh)
+- Credenciales de usuario (con biometría)
+- Métodos de limpieza automática
 
 ---
 
 **Versión**: 1.0.0+1
-**Última actualización**: Octubre 2026
+**Última actualización**: Noviembre 2026
 **Desarrollado por**: HIDRASOFT S.A.S.

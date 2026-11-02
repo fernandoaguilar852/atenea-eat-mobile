@@ -6,6 +6,11 @@ abstract class VentasRepository {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? startDate,
+    String? endDate,
+    String? estado,
+    int? cajaId,
+    int? operadorId,
   });
 
   Future<VentaDetallada> getVentaDetalle({

@@ -8,6 +8,11 @@ abstract class VentasRemoteDatasource {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? startDate,
+    String? endDate,
+    String? estado,
+    int? cajaId,
+    int? operadorId,
   });
 
   Future<VentaDetalladaDto> getVentaDetalle({
@@ -30,12 +35,37 @@ class VentasRemoteDatasourceImpl implements VentasRemoteDatasource {
     required int clienteId,
     required int pageSize,
     required int pageNumber,
+    String? startDate,
+    String? endDate,
+    String? estado,
+    int? cajaId,
+    int? operadorId,
   }) async {
     final queryParameters = <String, dynamic>{
       'clienteId': clienteId,
       'pageSize': pageSize,
       'pageNumber': pageNumber,
     };
+
+    if (startDate != null && startDate.isNotEmpty) {
+      queryParameters['startDate'] = startDate;
+    }
+
+    if (endDate != null && endDate.isNotEmpty) {
+      queryParameters['endDate'] = endDate;
+    }
+
+    if (estado != null && estado.isNotEmpty) {
+      queryParameters['estado'] = estado;
+    }
+
+    if (cajaId != null) {
+      queryParameters['cajaId'] = cajaId;
+    }
+
+    if (operadorId != null) {
+      queryParameters['operadorId'] = operadorId;
+    }
 
     final response = await dio.get(
       ApiConstants.buildUrl(ApiConstants.ventas),
