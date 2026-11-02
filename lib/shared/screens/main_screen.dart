@@ -7,6 +7,7 @@ import '../../features/reportes/presentation/screens/reportes_screen.dart';
 import '../../features/movimientos/presentation/screens/movimientos_screen.dart';
 import '../../features/ventas/presentation/screens/ventas_screen.dart';
 import '../../features/alertas/presentation/screens/alertas_screen.dart';
+import '../../features/resoluciones/presentation/screens/resoluciones_screen.dart';
 import '../../features/chat/presentation/providers/chat_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
@@ -20,7 +21,7 @@ class MainScreen extends ConsumerWidget {
     final currentIndex = ref.watch(mainScreenIndexProvider);
 
     // Títulos para cada pantalla
-    final titles = ['Facturas', 'Movimientos', 'Dashboard', 'Reportes', 'Chat IA', 'Alertas de Stock'];
+    final titles = ['Facturas', 'Movimientos', 'Dashboard', 'Reportes', 'Chat IA', 'Alertas de Stock', 'Resoluciones'];
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -59,10 +60,11 @@ class MainScreen extends ConsumerWidget {
           ReportesScreen(),
           ChatScreen(),
           AlertasScreen(),
+          ResolucionesScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex > 4 ? 2 : currentIndex, // Si está en Alertas (5), muestra Dashboard seleccionado
+        currentIndex: currentIndex > 4 ? 2 : currentIndex, // Si está en Alertas (5) o Resoluciones (6), muestra Dashboard seleccionado
         onTap: (index) {
           ref.read(mainScreenIndexProvider.notifier).state = index;
         },

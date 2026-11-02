@@ -59,6 +59,9 @@ class ApiConstants {
   // Endpoints de Alertas
   static const String alertasStock = '/alertas-stock';
 
+  // Endpoints de Resoluciones
+  static const String resoluciones = '/resoluciones';
+
   // Headers requeridos por la API
   static const String headerContentType = 'Content-Type';
   static const String headerMessageUuid = 'message-uuid';

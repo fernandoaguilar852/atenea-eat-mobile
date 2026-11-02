@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../providers/navigation_provider.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -97,13 +98,30 @@ class AppDrawer extends ConsumerWidget {
                     // TODO: Navegar a Órdenes
                   },
                 ),
-                _DrawerMenuItem(
-                  icon: Icons.business_center,
-                  title: 'Gestión',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // TODO: Navegar a Gestión
-                  },
+                ExpansionTile(
+                  leading: const Icon(
+                    Icons.business_center,
+                    color: Color(0xFFB0B0B0),
+                  ),
+                  title: Text(
+                    'Gestión',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      color: Colors.white,
+                    ),
+                  ),
+                  iconColor: const Color(0xFFB0B0B0),
+                  collapsedIconColor: const Color(0xFFB0B0B0),
+                  children: [
+                    _DrawerSubMenuItem(
+                      icon: Icons.description,
+                      title: 'Resoluciones',
+                      onTap: () {
+                        Navigator.pop(context);
+                        ref.read(mainScreenIndexProvider.notifier).state = 6;
+                      },
+                    ),
+                  ],
                 ),
                 _DrawerMenuItem(
                   icon: Icons.settings,
@@ -186,6 +204,44 @@ class _DrawerMenuItem extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+}
+
+class _DrawerSubMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _DrawerSubMenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: SizedBox(width: 24.w), // Espacio para alinear con el padre
+      title: Row(
+        children: [
+          Icon(
+            icon,
+            color: const Color(0xFF808080),
+            size: 20.sp,
+          ),
+          SizedBox(width: 12.w),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
+          ),
+        ],
+      ),
+      onTap: onTap,
+      contentPadding: EdgeInsets.only(left: 72.w, right: 24.w),
     );
   }
 }
