@@ -4,11 +4,38 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/alertas_provider.dart';
 import '../widgets/alerta_card.dart';
 
-class InsumosTab extends ConsumerWidget {
+class InsumosTab extends ConsumerStatefulWidget {
   const InsumosTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InsumosTab> createState() => _InsumosTabState();
+}
+
+class _InsumosTabState extends ConsumerState<InsumosTab> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listener para mostrar/ocultar botón de scroll to top
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(alertasProvider);
     final alertasResponse = state.alertasResponse;
 
@@ -46,11 +73,14 @@ class InsumosTab extends ConsumerWidget {
 
     return Container(
       color: Colors.black,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             Text(
               'Alertas de Insumos (${alertasResponse?.pagination.totalElement ?? 0})',
               style: TextStyle(
@@ -122,7 +152,43 @@ class InsumosTab extends ConsumerWidget {
               ),
             ],
           ],
-        ),
+            ),
+          ),
+
+          // Botón de scroll to top
+          if (_showScrollToTop)
+            Positioned(
+              bottom: 16.h,
+              right: 16.w,
+              child: Material(
+                color: const Color(0xFF0d6efd),
+                borderRadius: BorderRadius.circular(22.r),
+                elevation: 4,
+                child: InkWell(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(22.r),
+                  child: Container(
+                    width: 44.w,
+                    height: 44.w,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22.r),
+                    ),
+                    child: Icon(
+                      Icons.arrow_upward,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
