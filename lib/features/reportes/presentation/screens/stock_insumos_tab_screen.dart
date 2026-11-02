@@ -13,6 +13,8 @@ class StockInsumosTab extends ConsumerStatefulWidget {
 
 class StockInsumosTabState extends ConsumerState<StockInsumosTab> {
   String? _filtroStockBajo;
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
@@ -20,6 +22,19 @@ class StockInsumosTabState extends ConsumerState<StockInsumosTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(reportesProvider.notifier).loadReporteStockInsumos();
     });
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -29,11 +44,14 @@ class StockInsumosTabState extends ConsumerState<StockInsumosTab> {
     final isLoading = reportesState.isLoadingStockInsumos;
     final error = reportesState.errorStockInsumos;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          controller: _scrollController,
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           Text('Stock de Insumos', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold)),
           SizedBox(height: 16.h),
 
@@ -81,7 +99,43 @@ class StockInsumosTabState extends ConsumerState<StockInsumosTab> {
           else if (reporte != null)
             _buildReporteStock(reporte)
         ],
-      ),
+          ),
+        ),
+
+        // Botón de scroll to top
+        if (_showScrollToTop)
+          Positioned(
+            bottom: 16.h,
+            right: 16.w,
+            child: Material(
+              color: const Color(0xFF0d6efd),
+              borderRadius: BorderRadius.circular(22.r),
+              elevation: 4,
+              child: InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                borderRadius: BorderRadius.circular(22.r),
+                child: Container(
+                  width: 44.w,
+                  height: 44.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22.r),
+                  ),
+                  child: Icon(
+                    Icons.arrow_upward,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

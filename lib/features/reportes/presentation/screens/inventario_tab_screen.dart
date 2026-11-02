@@ -16,6 +16,26 @@ class InventarioTabState extends ConsumerState<InventarioTab> {
   DateTime? _startDate = DateTime.now();
   DateTime? _endDate = DateTime.now();
   String? _tipoMovimiento;
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +44,14 @@ class InventarioTabState extends ConsumerState<InventarioTab> {
     final isLoading = reportesState.isLoadingInventario;
     final error = reportesState.errorInventario;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          controller: _scrollController,
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           Text(
             'Inventario Consumido',
             style: TextStyle(
@@ -104,7 +127,43 @@ class InventarioTabState extends ConsumerState<InventarioTab> {
               ),
             ),
         ],
-      ),
+          ),
+        ),
+
+        // Botón de scroll to top
+        if (_showScrollToTop)
+          Positioned(
+            bottom: 16.h,
+            right: 16.w,
+            child: Material(
+              color: const Color(0xFF0d6efd),
+              borderRadius: BorderRadius.circular(22.r),
+              elevation: 4,
+              child: InkWell(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                borderRadius: BorderRadius.circular(22.r),
+                child: Container(
+                  width: 44.w,
+                  height: 44.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22.r),
+                  ),
+                  child: Icon(
+                    Icons.arrow_upward,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
