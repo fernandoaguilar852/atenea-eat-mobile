@@ -21,6 +21,11 @@ final sendMessageUseCaseProvider = Provider<SendMessageUseCase>((ref) {
   return SendMessageUseCase(repository);
 });
 
+// Clase helper para distinguir entre "no cambiar" y "establecer a null"
+class _Undefined {
+  const _Undefined();
+}
+
 // Estado de chat
 class ChatState {
   final List<ChatMessage> messages;
@@ -35,13 +40,13 @@ class ChatState {
 
   ChatState copyWith({
     List<ChatMessage>? messages,
-    bool? isLoading,
-    String? error,
+    Object? isLoading = const _Undefined(),
+    Object? error = const _Undefined(),
   }) {
     return ChatState(
       messages: messages ?? this.messages,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
+      isLoading: isLoading is _Undefined ? this.isLoading : isLoading as bool,
+      error: error is _Undefined ? this.error : error as String?,
     );
   }
 }

@@ -44,6 +44,10 @@ dependencies:
   # Biometric Authentication
   local_auth: ^2.2.0
 
+  # Speech Recognition
+  speech_to_text: ^7.4.0
+  permission_handler: ^11.3.1
+
   # Utils
   intl: ^0.19.0
   uuid: ^4.4.2

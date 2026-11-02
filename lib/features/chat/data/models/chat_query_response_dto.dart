@@ -57,28 +57,30 @@ class MessageResponse {
 
 class ChatData {
   final String answer;
-  final List<Map<String, dynamic>> data;
-  final String querySource;
-  final String explanation;
-  final String templateUsed;
+  final List<Map<String, dynamic>>? data;
+  final String? querySource;
+  final String? explanation;
+  final String? templateUsed;
 
   const ChatData({
     required this.answer,
-    required this.data,
-    required this.querySource,
-    required this.explanation,
-    required this.templateUsed,
+    this.data,
+    this.querySource,
+    this.explanation,
+    this.templateUsed,
   });
 
   factory ChatData.fromJson(Map<String, dynamic> json) {
     return ChatData(
       answer: json['answer'] as String,
-      data: (json['data'] as List<dynamic>)
-          .map((item) => item as Map<String, dynamic>)
-          .toList(),
-      querySource: json['querySource'] as String,
-      explanation: json['explanation'] as String,
-      templateUsed: json['templateUsed'] as String,
+      data: json['data'] != null
+          ? (json['data'] as List<dynamic>)
+              .map((item) => item as Map<String, dynamic>)
+              .toList()
+          : null,
+      querySource: json['querySource'] as String?,
+      explanation: json['explanation'] as String?,
+      templateUsed: json['templateUsed'] as String?,
     );
   }
 }
