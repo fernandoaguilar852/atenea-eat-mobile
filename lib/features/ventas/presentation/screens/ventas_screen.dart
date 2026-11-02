@@ -19,13 +19,24 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _operadorSearchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String? _selectedEstado;
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(ventasProvider.notifier).loadVentas();
+    });
+
+    // Listener para mostrar/ocultar botón de scroll to top
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
     });
   }
 
@@ -34,6 +45,7 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
     _startDateController.dispose();
     _endDateController.dispose();
     _operadorSearchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -167,10 +179,13 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
 
     return Container(
       color: Colors.black,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          children: [
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              children: [
             // Filtros de fecha
             Container(
                             padding: EdgeInsets.all(16.w),
@@ -814,9 +829,43 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
                             ),
                           ),
                         ],
-                      ],
+              ],
+            ),
+          ),
+          if (_showScrollToTop)
+            Positioned(
+              bottom: 16.h,
+              right: 16.w,
+              child: Material(
+                color: const Color(0xFF0d6efd),
+                borderRadius: BorderRadius.circular(22.r),
+                elevation: 4,
+                child: InkWell(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(22.r),
+                  child: Container(
+                    width: 44.w,
+                    height: 44.w,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22.r),
+                    ),
+                    child: Icon(
+                      Icons.arrow_upward,
+                      color: Colors.white,
+                      size: 24.sp,
                     ),
                   ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
