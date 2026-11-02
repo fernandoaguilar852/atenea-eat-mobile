@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../providers/dashboard_provider.dart';
+import '../../../../shared/providers/navigation_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -179,12 +180,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             icon: Icons.restaurant,
             color: const Color(0xFFffc107),
           ),
-          _StatCard(
-            title: 'Alertas',
-            value: '--',
-            subtitle: 'Cargando...',
-            icon: Icons.notifications_active,
-            color: const Color(0xFFdc3545),
+          GestureDetector(
+            onTap: () {
+              ref.read(mainScreenIndexProvider.notifier).state = 5;
+            },
+            child: _StatCard(
+              title: 'Alertas',
+              value: '--',
+              subtitle: 'Cargando...',
+              icon: Icons.notifications_active,
+              color: const Color(0xFFdc3545),
+            ),
           ),
         ],
       );
@@ -233,12 +239,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           icon: Icons.restaurant,
           color: const Color(0xFFffc107),
         ),
-        _StatCard(
-          title: 'Alertas',
-          value: '${estadisticas.cantidadAlertas}',
-          subtitle: estadisticas.cantidadAlertas > 0 ? 'Requieren atención' : 'Todo bien',
-          icon: Icons.notifications_active,
-          color: const Color(0xFFdc3545),
+        GestureDetector(
+          onTap: () {
+            ref.read(mainScreenIndexProvider.notifier).state = 5;
+          },
+          child: _StatCard(
+            title: 'Alertas',
+            value: '${estadisticas.cantidadAlertas}',
+            subtitle: estadisticas.cantidadAlertas > 0 ? 'Requieren atención' : 'Todo bien',
+            icon: Icons.notifications_active,
+            color: const Color(0xFFdc3545),
+          ),
         ),
       ],
     );

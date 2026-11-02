@@ -6,6 +6,7 @@ import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../../features/reportes/presentation/screens/reportes_screen.dart';
 import '../../features/movimientos/presentation/screens/movimientos_screen.dart';
 import '../../features/ventas/presentation/screens/ventas_screen.dart';
+import '../../features/alertas/presentation/screens/alertas_screen.dart';
 import '../../features/chat/presentation/providers/chat_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
@@ -19,7 +20,7 @@ class MainScreen extends ConsumerWidget {
     final currentIndex = ref.watch(mainScreenIndexProvider);
 
     // Títulos para cada pantalla
-    final titles = ['Facturas', 'Movimientos', 'Dashboard', 'Reportes', 'Chat IA'];
+    final titles = ['Facturas', 'Movimientos', 'Dashboard', 'Reportes', 'Chat IA', 'Alertas de Stock'];
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -57,10 +58,11 @@ class MainScreen extends ConsumerWidget {
           DashboardScreen(),
           ReportesScreen(),
           ChatScreen(),
+          AlertasScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
+        currentIndex: currentIndex > 4 ? 2 : currentIndex, // Si está en Alertas (5), muestra Dashboard seleccionado
         onTap: (index) {
           ref.read(mainScreenIndexProvider.notifier).state = index;
         },
