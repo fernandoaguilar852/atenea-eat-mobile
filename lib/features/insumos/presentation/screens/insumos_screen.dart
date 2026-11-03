@@ -260,8 +260,24 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
                 _buildInsumoSearch(),
                 SizedBox(height: 16.h),
 
-                // Filtro de activo/inactivo
-                _buildFiltroActivo(),
+                // Filtro de activo/inactivo y botón limpiar
+                Row(
+                  children: [
+                    Expanded(child: _buildFiltroActivo()),
+                    SizedBox(width: 12.w),
+                    IconButton(
+                      onPressed: _limpiarFiltros,
+                      icon: const Icon(Icons.clear_all),
+                      color: Colors.orange,
+                      iconSize: 32.sp,
+                      tooltip: 'Limpiar filtros',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                        padding: EdgeInsets.all(12.w),
+                      ),
+                    ),
+                  ],
+                ),
                 SizedBox(height: 16.h),
 
                 // Loading indicator
@@ -501,6 +517,14 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
       nombre: nombre,
       activo: _filtroActivo,
     );
+  }
+
+  void _limpiarFiltros() {
+    setState(() {
+      _filtroActivo = true;
+    });
+    ref.read(insumosSearchProvider.notifier).clearSearch();
+    _cargarInsumos();
   }
 
   Widget _buildFiltroActivo() {

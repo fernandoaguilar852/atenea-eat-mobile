@@ -16,6 +16,7 @@ class ProductosRepositoryImpl implements ProductosRepository {
     String? search,
     int? tipoProductoId,
     bool? activo,
+    bool? usaReceta,
   }) async {
     final dto = await remoteDatasource.getProductos(
       clienteId: clienteId,
@@ -24,6 +25,7 @@ class ProductosRepositoryImpl implements ProductosRepository {
       search: search,
       tipoProductoId: tipoProductoId,
       activo: activo,
+      usaReceta: usaReceta,
     );
     return dto.toEntity();
   }

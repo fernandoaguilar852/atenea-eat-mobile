@@ -9,6 +9,7 @@ abstract class ProductosRepository {
     String? search,
     int? tipoProductoId,
     bool? activo,
+    bool? usaReceta,
   });
 
   Future<Producto> getProductoDetail({

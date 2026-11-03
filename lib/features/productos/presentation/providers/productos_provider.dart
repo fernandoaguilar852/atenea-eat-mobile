@@ -48,6 +48,7 @@ class ProductosListState {
   final String? search;
   final int? tipoProductoId;
   final bool? activo;
+  final bool? usaReceta;
 
   ProductosListState({
     this.productosResponse,
@@ -57,6 +58,7 @@ class ProductosListState {
     this.search,
     this.tipoProductoId,
     this.activo = true,
+    this.usaReceta,
   });
 
   ProductosListState copyWith({
@@ -67,6 +69,7 @@ class ProductosListState {
     Object? search = _undefined,
     Object? tipoProductoId = _undefined,
     Object? activo = _undefined,
+    Object? usaReceta = _undefined,
   }) {
     return ProductosListState(
       productosResponse: productosResponse ?? this.productosResponse,
@@ -76,6 +79,7 @@ class ProductosListState {
       search: search == _undefined ? this.search : search as String?,
       tipoProductoId: tipoProductoId == _undefined ? this.tipoProductoId : tipoProductoId as int?,
       activo: activo == _undefined ? this.activo : activo as bool?,
+      usaReceta: usaReceta == _undefined ? this.usaReceta : usaReceta as bool?,
     );
   }
 }
@@ -95,6 +99,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     Object? search = _undefined,
     Object? tipoProductoId = _undefined,
     Object? activo = _undefined,
+    Object? usaReceta = _undefined,
   }) async {
     try {
       state = state.copyWith(
@@ -103,6 +108,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         search: search,
         tipoProductoId: tipoProductoId,
         activo: activo,
+        usaReceta: usaReceta,
       );
 
       final authState = ref.read(authProvider);
@@ -125,6 +131,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         search: state.search,
         tipoProductoId: state.tipoProductoId,
         activo: state.activo,
+        usaReceta: state.usaReceta,
       );
 
       state = state.copyWith(

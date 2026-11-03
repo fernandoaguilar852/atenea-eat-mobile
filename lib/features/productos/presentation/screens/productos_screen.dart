@@ -5,6 +5,8 @@ import '../../domain/entities/producto.dart';
 import '../providers/productos_provider.dart';
 import '../widgets/producto_card.dart';
 import '../widgets/productos_search_widget.dart';
+import '../../../categorias/presentation/providers/categorias_provider.dart';
+import '../../../categorias/domain/entities/categoria.dart';
 
 class ProductosScreen extends ConsumerStatefulWidget {
   const ProductosScreen({super.key});
@@ -16,6 +18,7 @@ class ProductosScreen extends ConsumerStatefulWidget {
 class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
+  Categoria? _selectedCategoria;
 
   @override
   void initState() {
@@ -30,6 +33,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(categoriasProvider.notifier).loadCategorias();
       ref.read(productosListProvider.notifier).loadProductos();
     });
   }
@@ -105,6 +109,139 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _mostrarFiltroCategoria() async {
+    final categoriasState = ref.read(categoriasProvider);
+    final categorias = categoriasState.categoriasResponse?.categorias ?? [];
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        title: Text(
+          'Filtrar por Categoría',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.sp,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.all_inclusive,
+                  color: _selectedCategoria == null ? const Color(0xFF0d6efd) : Colors.white,
+                ),
+                title: const Text('Todas las categorías', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  setState(() => _selectedCategoria = null);
+                  Navigator.pop(context);
+                  ref.read(productosListProvider.notifier).loadProductos(tipoProductoId: null);
+                },
+              ),
+              ...categorias.map((categoria) {
+                return ListTile(
+                  leading: Icon(
+                    Icons.category,
+                    color: _selectedCategoria?.tipoProductoId == categoria.tipoProductoId
+                        ? const Color(0xFF0d6efd)
+                        : Colors.white,
+                  ),
+                  title: Text(
+                    categoria.nombre,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    setState(() => _selectedCategoria = categoria);
+                    Navigator.pop(context);
+                    ref.read(productosListProvider.notifier).loadProductos(
+                          tipoProductoId: categoria.tipoProductoId,
+                        );
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _mostrarFiltroReceta() async {
+    final state = ref.read(productosListProvider);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        title: Text(
+          'Filtrar por Receta',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.sp,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                Icons.all_inclusive,
+                color: state.usaReceta == null ? const Color(0xFF0d6efd) : Colors.white,
+              ),
+              title: const Text('Todos', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(productosListProvider.notifier).loadProductos(usaReceta: null);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.restaurant_menu,
+                color: state.usaReceta == true ? const Color(0xFF0d6efd) : Colors.white,
+              ),
+              title: const Text('Con receta', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(productosListProvider.notifier).loadProductos(usaReceta: true);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.do_not_disturb_alt,
+                color: state.usaReceta == false ? const Color(0xFF0d6efd) : Colors.white,
+              ),
+              title: const Text('Sin receta', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(productosListProvider.notifier).loadProductos(usaReceta: false);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _limpiarFiltros() {
+    setState(() {
+      _selectedCategoria = null;
+    });
+    ref.read(productosListProvider.notifier).loadProductos(
+          activo: true,
+          tipoProductoId: null,
+          usaReceta: null,
+        );
   }
 
   Future<void> _confirmarEliminar(Producto producto) async {
@@ -355,29 +492,90 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
 
                     SizedBox(height: 12.h),
 
-                    // Botón de filtro activo
+                    // Botones de filtros
                     Row(
                       children: [
+                        // Filtro de estado
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: _mostrarFiltroActivo,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0d6efd),
                               foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              padding: EdgeInsets.symmetric(vertical: 10.h),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.r),
                               ),
                             ),
-                            icon: Icon(Icons.filter_list, size: 18.sp),
+                            icon: Icon(Icons.filter_list, size: 16.sp),
                             label: Text(
                               state.activo == null
                                   ? 'Todos'
                                   : state.activo == true
-                                      ? 'Solo activos'
-                                      : 'Solo inactivos',
-                              style: TextStyle(fontSize: 12.sp),
+                                      ? 'Activos'
+                                      : 'Inactivos',
+                              style: TextStyle(fontSize: 11.sp),
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        // Filtro de categoría
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _mostrarFiltroCategoria,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0d6efd),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 10.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            icon: Icon(Icons.category, size: 16.sp),
+                            label: Text(
+                              _selectedCategoria?.nombre ?? 'Categoría',
+                              style: TextStyle(fontSize: 11.sp),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        // Filtro de receta
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _mostrarFiltroReceta,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0d6efd),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 10.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            icon: Icon(Icons.restaurant_menu, size: 16.sp),
+                            label: Text(
+                              state.usaReceta == null
+                                  ? 'Receta'
+                                  : state.usaReceta == true
+                                      ? 'Con'
+                                      : 'Sin',
+                              style: TextStyle(fontSize: 11.sp),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        // Botón limpiar filtros
+                        IconButton(
+                          onPressed: _limpiarFiltros,
+                          icon: const Icon(Icons.clear_all),
+                          color: Colors.orange,
+                          iconSize: 28.sp,
+                          tooltip: 'Limpiar filtros',
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                            padding: EdgeInsets.all(10.w),
                           ),
                         ),
                       ],

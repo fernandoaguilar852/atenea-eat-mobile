@@ -11,6 +11,7 @@ abstract class ProductosRemoteDatasource {
     String? search,
     int? tipoProductoId,
     bool? activo,
+    bool? usaReceta,
   });
 
   Future<ProductoDto> getProductoDetail({
@@ -32,6 +33,7 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
     String? search,
     int? tipoProductoId,
     bool? activo,
+    bool? usaReceta,
   }) async {
     final queryParameters = <String, dynamic>{
       'clienteId': clienteId,
@@ -49,6 +51,10 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
 
     if (activo != null) {
       queryParameters['activo'] = activo;
+    }
+
+    if (usaReceta != null) {
+      queryParameters['usaReceta'] = usaReceta;
     }
 
     final response = await dio.get(

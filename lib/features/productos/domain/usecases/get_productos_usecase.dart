@@ -13,6 +13,7 @@ class GetProductosUseCase {
     String? search,
     int? tipoProductoId,
     bool? activo,
+    bool? usaReceta,
   }) {
     return repository.getProductos(
       clienteId: clienteId,
@@ -21,6 +22,7 @@ class GetProductosUseCase {
       search: search,
       tipoProductoId: tipoProductoId,
       activo: activo,
+      usaReceta: usaReceta,
     );
   }
 }
