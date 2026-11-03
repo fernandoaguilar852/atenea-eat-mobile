@@ -479,28 +479,60 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
             ],
           ),
 
-          // Botón scroll to top
-          if (_showScrollToTop)
-            Positioned(
-              right: 16.w,
-              bottom: 80.h,
-              child: FloatingActionButton(
-                onPressed: _scrollToTop,
-                backgroundColor: const Color(0xFF0d6efd),
-                child: Icon(Icons.arrow_upward, size: 24.sp),
-              ),
-            ),
-
           // Botón crear producto (superior derecha)
           Positioned(
             top: 16.h,
             right: 16.w,
-            child: FloatingActionButton(
-              onPressed: _mostrarCrearProducto,
-              backgroundColor: const Color(0xFF0d6efd),
-              child: Icon(Icons.add, size: 24.sp),
+            child: Material(
+              color: const Color(0xFF0d6efd),
+              borderRadius: BorderRadius.circular(22.r),
+              elevation: 4,
+              child: InkWell(
+                onTap: _mostrarCrearProducto,
+                borderRadius: BorderRadius.circular(22.r),
+                child: Container(
+                  width: 44.w,
+                  height: 44.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22.r),
+                  ),
+                  child: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
             ),
           ),
+
+          // Botón scroll to top
+          if (_showScrollToTop)
+            Positioned(
+              bottom: 16.h,
+              right: 16.w,
+              child: Material(
+                color: const Color(0xFF0d6efd),
+                borderRadius: BorderRadius.circular(22.r),
+                elevation: 4,
+                child: InkWell(
+                  onTap: _scrollToTop,
+                  borderRadius: BorderRadius.circular(22.r),
+                  child: Container(
+                    width: 44.w,
+                    height: 44.w,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22.r),
+                    ),
+                    child: Icon(
+                      Icons.arrow_upward,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

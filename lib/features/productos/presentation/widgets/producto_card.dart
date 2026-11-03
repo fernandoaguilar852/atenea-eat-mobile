@@ -183,39 +183,27 @@ class ProductoCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: OutlinedButton.icon(
                     onPressed: onEdit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFffc107),
-                      foregroundColor: Colors.black,
+                    icon: Icon(Icons.edit, size: 18.sp),
+                    label: Text('Editar', style: TextStyle(fontSize: 13.sp)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFffc107),
+                      side: const BorderSide(color: Color(0xFFffc107)),
                       padding: EdgeInsets.symmetric(vertical: 10.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    icon: Icon(Icons.edit, size: 16.sp),
-                    label: Text(
-                      'Editar',
-                      style: TextStyle(fontSize: 12.sp),
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 12.w),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: OutlinedButton.icon(
                     onPressed: onDelete,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFdc3545),
-                      foregroundColor: Colors.white,
+                    icon: Icon(Icons.delete, size: 18.sp),
+                    label: Text('Eliminar', style: TextStyle(fontSize: 13.sp)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFdc3545),
+                      side: const BorderSide(color: Color(0xFFdc3545)),
                       padding: EdgeInsets.symmetric(vertical: 10.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    icon: Icon(Icons.delete, size: 16.sp),
-                    label: Text(
-                      'Eliminar',
-                      style: TextStyle(fontSize: 12.sp),
                     ),
                   ),
                 ),
