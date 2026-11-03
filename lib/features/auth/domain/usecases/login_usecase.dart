@@ -26,6 +26,9 @@ class LoginUseCase {
     }
 
     // Llamar al repository
-    return await _repository.login(email: email, password: password);
+    return await _repository.login(
+      email: email,
+      password: password,
+    );
   }
 }

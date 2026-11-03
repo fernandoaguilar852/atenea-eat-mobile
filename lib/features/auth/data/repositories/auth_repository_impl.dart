@@ -35,13 +35,6 @@ class AuthRepositoryImpl implements AuthRepository {
       await storageService.saveAccessToken(response.data.accessToken);
       await storageService.saveRefreshToken(response.data.refreshToken);
 
-      // Guardar credenciales para biometría (siempre remember me por defecto)
-      await storageService.saveCredentials(
-        email: email,
-        password: password,
-        rememberMe: true,
-      );
-
       return (
         accessToken: response.data.accessToken,
         refreshToken: response.data.refreshToken,

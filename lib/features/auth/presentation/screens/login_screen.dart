@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/services/credentials_storage_service.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -15,8 +16,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _credentialsService = CredentialsStorageService();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _rememberMe = false;
+  bool _isLoadingCredentials = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Solo pre-llenar credenciales, NO auto-login
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
@@ -25,39 +36,99 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _loadSavedCredentials() async {
+    setState(() => _isLoadingCredentials = true);
+
+    try {
+      final hasCredentials = await _credentialsService.hasCredentials();
+      if (hasCredentials) {
+        final credentials = await _credentialsService.getCredentials();
+        if (credentials != null && mounted) {
+          setState(() {
+            _emailController.text = credentials.email;
+            _passwordController.text = credentials.password;
+            _rememberMe = true;
+          });
+        }
+      }
+    } catch (e) {
+      // Si falla la autenticación biométrica, simplemente no pre-llena
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingCredentials = false);
+      }
+    }
+  }
+
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    // Llamar al provider de autenticación
-    final success = await ref.read(authProvider.notifier).login(
-          _emailController.text.trim().toLowerCase(),
-          _passwordController.text,
+    try {
+      final email = _emailController.text.trim().toLowerCase();
+      final password = _passwordController.text;
+
+      // Llamar al provider de autenticación (sin parámetro rememberMe)
+      final success = await ref.read(authProvider.notifier).login(email, password);
+
+      if (!mounted) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      if (success) {
+        // Guardar credenciales DESPUÉS del login exitoso
+        await _credentialsService.saveCredentials(
+          email: email,
+          password: password,
+          rememberMe: _rememberMe,
         );
 
-    setState(() => _isLoading = false);
+        if (!mounted) return;
 
-    if (!mounted) return;
-
-    if (success) {
-      // Login exitoso, navegar al main
-      context.go('/main');
-    } else {
-      // Mostrar error
-      final error = ref.read(authProvider).error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error ?? 'Error al iniciar sesión'),
-          backgroundColor: const Color(0xFFdc3545),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        // Login exitoso, navegar al main
+        context.go('/main');
+      } else {
+        setState(() => _isLoading = false);
+        // Mostrar error
+        final error = ref.read(authProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'Error al iniciar sesión'),
+            backgroundColor: const Color(0xFFdc3545),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: const Color(0xFFdc3545),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Mostrar loading mientras carga las credenciales
+    if (_isLoadingCredentials) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF0d6efd),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -156,7 +227,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 24.h),
+                    SizedBox(height: 16.h),
+
+                    // Remember me checkbox
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value ?? true;
+                            });
+                          },
+                          fillColor: WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
+                              if (states.contains(WidgetState.selected)) {
+                                return const Color(0xFF0d6efd);
+                              }
+                              return Colors.transparent;
+                            },
+                          ),
+                          side: const BorderSide(color: Color(0xFF363636), width: 1.5),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _rememberMe = !_rememberMe;
+                              });
+                            },
+                            child: Text(
+                              'Recordar credenciales (Biometría)',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: const Color(0xFFB0B0B0),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16.h),
 
                     // Login button
                     SizedBox(
