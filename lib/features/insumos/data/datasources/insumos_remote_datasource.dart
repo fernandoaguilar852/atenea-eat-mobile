@@ -16,6 +16,20 @@ abstract class InsumosRemoteDatasource {
     required int insumoId,
     required int clienteId,
   });
+
+  Future<void> updateInsumo({
+    required int insumoId,
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockMinimo,
+    required bool activo,
+  });
+
+  Future<void> deleteInsumo({
+    required int insumoId,
+    required int clienteId,
+  });
 }
 
 class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
@@ -78,6 +92,54 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
         return InsumoDto.fromJson(response.data['data']);
       } else {
         throw Exception('Error al obtener detalle del insumo - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateInsumo({
+    required int insumoId,
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockMinimo,
+    required bool activo,
+  }) async {
+    try {
+      final body = {
+        'nombre': nombre,
+        'unidadBase': unidadBase,
+        'stockMinimo': stockMinimo,
+        'activo': activo,
+      };
+
+      final response = await dio.patch(
+        ApiConstants.buildUrl('${ApiConstants.insumos}/$insumoId?clienteId=$clienteId'),
+        data: body,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al actualizar insumo - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteInsumo({
+    required int insumoId,
+    required int clienteId,
+  }) async {
+    try {
+      final response = await dio.delete(
+        ApiConstants.buildUrl('${ApiConstants.insumos}/$insumoId?clienteId=$clienteId'),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al eliminar insumo - Status: ${response.statusCode}');
       }
     } catch (e) {
       rethrow;

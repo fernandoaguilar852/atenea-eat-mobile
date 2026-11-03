@@ -121,6 +121,14 @@ class AppDrawer extends ConsumerWidget {
                         ref.read(mainScreenIndexProvider.notifier).state = 6;
                       },
                     ),
+                    _DrawerSubMenuItem(
+                      icon: Icons.science,
+                      title: 'Insumos',
+                      onTap: () {
+                        Navigator.pop(context);
+                        ref.read(mainScreenIndexProvider.notifier).state = 7;
+                      },
+                    ),
                   ],
                 ),
                 _DrawerMenuItem(

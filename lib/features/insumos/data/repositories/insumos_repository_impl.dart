@@ -45,4 +45,42 @@ class InsumosRepositoryImpl implements InsumosRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<void> updateInsumo({
+    required int insumoId,
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockMinimo,
+    required bool activo,
+  }) async {
+    try {
+      await remoteDatasource.updateInsumo(
+        insumoId: insumoId,
+        clienteId: clienteId,
+        nombre: nombre,
+        unidadBase: unidadBase,
+        stockMinimo: stockMinimo,
+        activo: activo,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteInsumo({
+    required int insumoId,
+    required int clienteId,
+  }) async {
+    try {
+      await remoteDatasource.deleteInsumo(
+        insumoId: insumoId,
+        clienteId: clienteId,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
