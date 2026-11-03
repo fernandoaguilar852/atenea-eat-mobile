@@ -51,4 +51,36 @@ class ResolucionesRepositoryImpl implements ResolucionesRepository {
       activo: activo,
     );
   }
+
+  @override
+  Future<void> updateResolucion({
+    required int resolucionId,
+    required int clienteId,
+    required String prefijo,
+    required int numeroHasta,
+    required int numeroActual,
+    required String fechaVencimiento,
+    required bool activo,
+  }) async {
+    await remoteDatasource.updateResolucion(
+      resolucionId: resolucionId,
+      clienteId: clienteId,
+      prefijo: prefijo,
+      numeroHasta: numeroHasta,
+      numeroActual: numeroActual,
+      fechaVencimiento: fechaVencimiento,
+      activo: activo,
+    );
+  }
+
+  @override
+  Future<void> deleteResolucion({
+    required int resolucionId,
+    required int clienteId,
+  }) async {
+    await remoteDatasource.deleteResolucion(
+      resolucionId: resolucionId,
+      clienteId: clienteId,
+    );
+  }
 }

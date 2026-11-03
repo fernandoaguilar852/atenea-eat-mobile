@@ -23,6 +23,21 @@ abstract class ResolucionesRemoteDatasource {
     required String fechaVencimiento,
     required bool activo,
   });
+
+  Future<void> updateResolucion({
+    required int resolucionId,
+    required int clienteId,
+    required String prefijo,
+    required int numeroHasta,
+    required int numeroActual,
+    required String fechaVencimiento,
+    required bool activo,
+  });
+
+  Future<void> deleteResolucion({
+    required int resolucionId,
+    required int clienteId,
+  });
 }
 
 class ResolucionesRemoteDatasourceImpl implements ResolucionesRemoteDatasource {
@@ -98,6 +113,48 @@ class ResolucionesRemoteDatasourceImpl implements ResolucionesRemoteDatasource {
 
     if (response.statusCode != 201 && response.statusCode != 200) {
       throw Exception('Error al crear resolución - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<void> updateResolucion({
+    required int resolucionId,
+    required int clienteId,
+    required String prefijo,
+    required int numeroHasta,
+    required int numeroActual,
+    required String fechaVencimiento,
+    required bool activo,
+  }) async {
+    final body = {
+      'prefijo': prefijo,
+      'numeroHasta': numeroHasta,
+      'numeroActual': numeroActual,
+      'fechaVencimiento': fechaVencimiento,
+      'activo': activo,
+    };
+
+    final response = await dio.patch(
+      ApiConstants.buildUrl('${ApiConstants.resoluciones}/$resolucionId?clienteId=$clienteId'),
+      data: body,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al actualizar resolución - Status: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<void> deleteResolucion({
+    required int resolucionId,
+    required int clienteId,
+  }) async {
+    final response = await dio.delete(
+      ApiConstants.buildUrl('${ApiConstants.resoluciones}/$resolucionId?clienteId=$clienteId'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar resolución - Status: ${response.statusCode}');
     }
   }
 }

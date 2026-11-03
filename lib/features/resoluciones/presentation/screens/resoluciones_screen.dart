@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/resoluciones_provider.dart';
 import '../widgets/resolucion_card.dart';
 import '../widgets/crear_resolucion_modal.dart';
+import '../widgets/editar_resolucion_modal.dart';
+import '../../domain/entities/resolucion.dart';
 
 class ResolucionesScreen extends ConsumerStatefulWidget {
   const ResolucionesScreen({super.key});
@@ -145,6 +147,165 @@ class _ResolucionesScreenState extends ConsumerState<ResolucionesScreen> {
       _fechaHasta = null;
     });
     ref.read(resolucionesProvider.notifier).clearFiltros();
+  }
+
+  Future<void> _mostrarModalEditar(Resolucion resolucion) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => EditarResolucionModal(resolucion: resolucion),
+    );
+
+    if (result == true && mounted) {
+      // Mostrar mensaje de éxito
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Resolución actualizada exitosamente'),
+          backgroundColor: const Color(0xFF198754),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmarEliminar(Resolucion resolucion) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Mostrar diálogo de confirmación
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: const Color(0xFFdc3545),
+              size: 28.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Confirmar Eliminación',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Estás seguro de que deseas eliminar esta resolución?',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14.sp,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0d6efd).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: const Color(0xFF0d6efd),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Resolución: ${resolucion.numeroResolucion}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Prefijo: ${resolucion.prefijo}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Esta acción no se puede deshacer.',
+              style: TextStyle(
+                color: const Color(0xFFdc3545),
+                fontSize: 12.sp,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: const Color(0xFF6c757d),
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFdc3545),
+            ),
+            child: Text(
+              'Eliminar',
+              style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      // Llamar al método de eliminar
+      final error = await ref.read(resolucionesProvider.notifier).deleteResolucion(
+        resolucionId: resolucion.resolucionId,
+        isActiva: resolucion.activo,
+      );
+
+      if (mounted) {
+        if (error == null) {
+          // Éxito
+          messenger.showSnackBar(
+            SnackBar(
+              content: const Text('Resolución eliminada exitosamente'),
+              backgroundColor: const Color(0xFF198754),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        } else {
+          // Error
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: const Color(0xFFdc3545),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -452,7 +613,11 @@ class _ResolucionesScreenState extends ConsumerState<ResolucionesScreen> {
                       if (resolucionesResponse != null &&
                           resolucionesResponse.resoluciones.isNotEmpty)
                         ...resolucionesResponse.resoluciones.map((resolucion) {
-                          return ResolucionCard(resolucion: resolucion);
+                          return ResolucionCard(
+                            resolucion: resolucion,
+                            onEdit: () => _mostrarModalEditar(resolucion),
+                            onDelete: () => _confirmarEliminar(resolucion),
+                          );
                         })
                       else
                         Center(

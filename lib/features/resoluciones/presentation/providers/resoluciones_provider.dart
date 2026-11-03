@@ -7,6 +7,8 @@ import '../../domain/entities/resoluciones_response.dart';
 import '../../domain/repositories/resoluciones_repository.dart';
 import '../../domain/usecases/get_resoluciones_usecase.dart';
 import '../../domain/usecases/create_resolucion_usecase.dart';
+import '../../domain/usecases/update_resolucion_usecase.dart';
+import '../../domain/usecases/delete_resolucion_usecase.dart';
 
 // Provider del repositorio
 final resolucionesRepositoryProvider = Provider<ResolucionesRepository>((ref) {
@@ -26,6 +28,18 @@ final getResolucionesUseCaseProvider = Provider<GetResolucionesUseCase>((ref) {
 final createResolucionUseCaseProvider = Provider<CreateResolucionUseCase>((ref) {
   final repository = ref.watch(resolucionesRepositoryProvider);
   return CreateResolucionUseCase(repository);
+});
+
+// Provider del UseCase para actualizar resoluciones
+final updateResolucionUseCaseProvider = Provider<UpdateResolucionUseCase>((ref) {
+  final repository = ref.watch(resolucionesRepositoryProvider);
+  return UpdateResolucionUseCase(repository: repository);
+});
+
+// Provider del UseCase para eliminar resoluciones
+final deleteResolucionUseCaseProvider = Provider<DeleteResolucionUseCase>((ref) {
+  final repository = ref.watch(resolucionesRepositoryProvider);
+  return DeleteResolucionUseCase(repository: repository);
 });
 
 // Clase helper para distinguir entre "no cambiar" y "establecer a null"
@@ -80,11 +94,15 @@ class ResolucionesState {
 class ResolucionesNotifier extends StateNotifier<ResolucionesState> {
   final GetResolucionesUseCase getResolucionesUseCase;
   final CreateResolucionUseCase createResolucionUseCase;
+  final UpdateResolucionUseCase updateResolucionUseCase;
+  final DeleteResolucionUseCase deleteResolucionUseCase;
   final Ref ref;
 
   ResolucionesNotifier({
     required this.getResolucionesUseCase,
     required this.createResolucionUseCase,
+    required this.updateResolucionUseCase,
+    required this.deleteResolucionUseCase,
     required this.ref,
   }) : super(const ResolucionesState());
 
@@ -236,16 +254,89 @@ class ResolucionesNotifier extends StateNotifier<ResolucionesState> {
       return e.toString().replaceAll('Exception: ', '');
     }
   }
+
+  /// Actualizar resolución
+  Future<String?> updateResolucion({
+    required int resolucionId,
+    required String prefijo,
+    required int numeroHasta,
+    required int numeroActual,
+    required String fechaVencimiento,
+    required bool activo,
+  }) async {
+    final authState = ref.read(authProvider);
+    final clienteId = authState.user?.clienteId;
+
+    if (clienteId == null) {
+      return 'No se encontró el cliente';
+    }
+
+    try {
+      await updateResolucionUseCase.call(
+        resolucionId: resolucionId,
+        clienteId: clienteId,
+        prefijo: prefijo,
+        numeroHasta: numeroHasta,
+        numeroActual: numeroActual,
+        fechaVencimiento: fechaVencimiento,
+        activo: activo,
+      );
+
+      // Recargar las resoluciones después de actualizar
+      await loadResoluciones();
+
+      return null; // Sin error
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
+  /// Eliminar resolución
+  /// Retorna un mensaje de error si no se puede eliminar, null si fue exitoso
+  Future<String?> deleteResolucion({
+    required int resolucionId,
+    required bool isActiva,
+  }) async {
+    // Validar que no esté activa
+    if (isActiva) {
+      return 'No se puede eliminar una resolución activa. Primero debe desactivarla.';
+    }
+
+    final authState = ref.read(authProvider);
+    final clienteId = authState.user?.clienteId;
+
+    if (clienteId == null) {
+      return 'No se encontró el cliente';
+    }
+
+    try {
+      await deleteResolucionUseCase.call(
+        resolucionId: resolucionId,
+        clienteId: clienteId,
+      );
+
+      // Recargar las resoluciones después de eliminar
+      await loadResoluciones();
+
+      return null; // Sin error
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
 }
 
 // Provider del notifier
 final resolucionesProvider = StateNotifierProvider<ResolucionesNotifier, ResolucionesState>((ref) {
   final getResolucionesUseCase = ref.watch(getResolucionesUseCaseProvider);
   final createResolucionUseCase = ref.watch(createResolucionUseCaseProvider);
+  final updateResolucionUseCase = ref.watch(updateResolucionUseCaseProvider);
+  final deleteResolucionUseCase = ref.watch(deleteResolucionUseCaseProvider);
 
   return ResolucionesNotifier(
     getResolucionesUseCase: getResolucionesUseCase,
     createResolucionUseCase: createResolucionUseCase,
+    updateResolucionUseCase: updateResolucionUseCase,
+    deleteResolucionUseCase: deleteResolucionUseCase,
     ref: ref,
   );
 });

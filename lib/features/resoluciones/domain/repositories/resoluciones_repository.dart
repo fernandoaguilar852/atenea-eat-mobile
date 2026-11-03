@@ -21,4 +21,19 @@ abstract class ResolucionesRepository {
     required String fechaVencimiento,
     required bool activo,
   });
+
+  Future<void> updateResolucion({
+    required int resolucionId,
+    required int clienteId,
+    required String prefijo,
+    required int numeroHasta,
+    required int numeroActual,
+    required String fechaVencimiento,
+    required bool activo,
+  });
+
+  Future<void> deleteResolucion({
+    required int resolucionId,
+    required int clienteId,
+  });
 }

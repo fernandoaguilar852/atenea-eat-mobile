@@ -5,10 +5,14 @@ import '../../domain/entities/resolucion.dart';
 
 class ResolucionCard extends StatelessWidget {
   final Resolucion resolucion;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const ResolucionCard({
     super.key,
     required this.resolucion,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -308,28 +312,10 @@ class ResolucionCard extends StatelessWidget {
             padding: EdgeInsets.all(12.w),
             child: Row(
               children: [
-                // Botón Ver
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implementar ver detalle
-                    },
-                    icon: Icon(Icons.visibility, size: 18.sp),
-                    label: Text('Ver', style: TextStyle(fontSize: 13.sp)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0d6efd),
-                      side: const BorderSide(color: Color(0xFF0d6efd)),
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.w),
                 // Botón Editar
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implementar editar
-                    },
+                    onPressed: onEdit,
                     icon: Icon(Icons.edit, size: 18.sp),
                     label: Text('Editar', style: TextStyle(fontSize: 13.sp)),
                     style: OutlinedButton.styleFrom(
@@ -339,13 +325,11 @@ class ResolucionCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 12.w),
                 // Botón Eliminar
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implementar eliminar
-                    },
+                    onPressed: onDelete,
                     icon: Icon(Icons.delete, size: 18.sp),
                     label: Text('Eliminar', style: TextStyle(fontSize: 13.sp)),
                     style: OutlinedButton.styleFrom(
