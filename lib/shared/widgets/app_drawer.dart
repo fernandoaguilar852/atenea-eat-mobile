@@ -222,26 +222,20 @@ class _DrawerSubMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: SizedBox(width: 24.w), // Espacio para alinear con el padre
-      title: Row(
-        children: [
-          Icon(
-            icon,
-            color: const Color(0xFF808080),
-            size: 20.sp,
-          ),
-          SizedBox(width: 12.w),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.white.withValues(alpha: 0.9),
-            ),
-          ),
-        ],
+      leading: Icon(
+        icon,
+        color: const Color(0xFF808080),
+        size: 20.sp,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14.sp,
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
       ),
       onTap: onTap,
-      contentPadding: EdgeInsets.only(left: 72.w, right: 24.w),
+      contentPadding: EdgeInsets.only(left: 32.w, right: 16.w),
     );
   }
 }
