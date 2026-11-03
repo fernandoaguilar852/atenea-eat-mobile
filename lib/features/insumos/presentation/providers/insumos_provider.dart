@@ -416,7 +416,7 @@ class InsumosSearchNotifier extends StateNotifier<InsumosSearchState> {
     if (query.length < 3) {
       state = InsumosSearchState();
       return;
-    }
+      }
 
     state = state.copyWith(isLoading: true, error: null);
 
@@ -434,9 +434,9 @@ class InsumosSearchNotifier extends StateNotifier<InsumosSearchState> {
 
       final response = await getInsumosUseCase(
         clienteId: clienteId,
-        pageSize: 10,
+        pageSize: 100, // Traer más resultados para buscar en todas las páginas
         pageNumber: 1,
-        activo: true,
+        activo: null, // Buscar en todos (activos e inactivos)
         nombre: query,
       );
 

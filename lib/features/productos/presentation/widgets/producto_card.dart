@@ -176,34 +176,75 @@ class ProductoCard extends StatelessWidget {
                         ),
                       ],
 
-                      // Estado
+                      // Estado y Receta
                       SizedBox(height: 4.h),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 2.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: producto.activo
-                              ? const Color(0xFF198754).withValues(alpha: 0.2)
-                              : const Color(0xFFdc3545).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4.r),
-                          border: Border.all(
-                            color: producto.activo
-                                ? const Color(0xFF198754)
-                                : const Color(0xFFdc3545),
+                      Row(
+                        children: [
+                          // Estado Activo/Inactivo
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: producto.activo
+                                  ? const Color(0xFF198754).withValues(alpha: 0.2)
+                                  : const Color(0xFFdc3545).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4.r),
+                              border: Border.all(
+                                color: producto.activo
+                                    ? const Color(0xFF198754)
+                                    : const Color(0xFFdc3545),
+                              ),
+                            ),
+                            child: Text(
+                              producto.activo ? 'Activo' : 'Inactivo',
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.bold,
+                                color: producto.activo
+                                    ? const Color(0xFF198754)
+                                    : const Color(0xFFdc3545),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          producto.activo ? 'Activo' : 'Inactivo',
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.bold,
-                            color: producto.activo
-                                ? const Color(0xFF198754)
-                                : const Color(0xFFdc3545),
-                          ),
-                        ),
+                          // Indicador de Receta
+                          if (producto.usaReceta) ...[
+                            SizedBox(width: 6.w),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6.w,
+                                vertical: 2.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0d6efd).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4.r),
+                                border: Border.all(
+                                  color: const Color(0xFF0d6efd),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.restaurant_menu,
+                                    size: 10.sp,
+                                    color: const Color(0xFF0d6efd),
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  Text(
+                                    'Receta',
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF0d6efd),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),

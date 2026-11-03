@@ -299,9 +299,9 @@ class ProductosSearchNotifier extends StateNotifier<ProductosSearchState> {
 
       final response = await getProductosUseCase(
         clienteId: clienteId,
-        pageSize: 10,
+        pageSize: 100, // Traer más resultados para buscar en todas las páginas
         pageNumber: 1,
-        activo: true,
+        activo: null, // Buscar en todos (activos e inactivos)
         search: query,
       );
 
