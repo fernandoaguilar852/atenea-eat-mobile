@@ -1,18 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import '../../domain/entities/venta_detallada.dart';
+import '../providers/ventas_provider.dart';
 
-class VentaDetalleModal extends StatelessWidget {
-  final VentaDetallada venta;
-
+class VentaDetalleModal extends ConsumerWidget {
   const VentaDetalleModal({
     super.key,
-    required this.venta,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(ventasProvider);
+    final venta = state.ventaDetallada;
+
+    if (venta == null) {
+      return Dialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: const Color(0xFF0d6efd)),
+              SizedBox(height: 16.h),
+              Text(
+                'Cargando detalle...',
+                style: TextStyle(color: Colors.white, fontSize: 14.sp),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final numberFormat = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
 
     return Dialog(
@@ -206,11 +227,15 @@ class VentaDetalleModal extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      pago.metodo != null
-                                        ? pago.metodo!.toUpperCase()
-                                        : 'Pago ID: ${pago.pagoId}',
+                                      pago.metodo == null
+                                        ? 'Cargando método...'
+                                        : pago.metodo == 'Desconocido'
+                                            ? 'MÉTODO DESCONOCIDO'
+                                            : pago.metodo!.toUpperCase(),
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: pago.metodo == null
+                                            ? Colors.grey[500]
+                                            : Colors.white,
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
                                       ),

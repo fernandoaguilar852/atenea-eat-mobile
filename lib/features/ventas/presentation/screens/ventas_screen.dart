@@ -155,9 +155,7 @@ class _VentasScreenState extends ConsumerState<VentasScreen> {
     if (state.ventaDetallada != null && mounted) {
       showDialog(
         context: context,
-        builder: (context) => VentaDetalleModal(
-          venta: state.ventaDetallada!,
-        ),
+        builder: (context) => const VentaDetalleModal(),
       ).then((_) {
         ref.read(ventasProvider.notifier).clearVentaDetalle();
       });

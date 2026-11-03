@@ -232,31 +232,8 @@ class VentasNotifier extends StateNotifier<VentasState> {
         clienteId: clienteId,
       );
 
-      // Cargar métodos de pago en paralelo
-      final datasource = ref.read(ventasRemoteDatasourceProvider);
-      final pagosConMetodo = await Future.wait(
-        detalle.pagos.map((pago) async {
-          try {
-            final metodo = await datasource.getMetodoPago(pagoId: pago.pagoId);
-            return VentaPago(
-              ventaPagoId: pago.ventaPagoId,
-              ventaId: pago.ventaId,
-              pagoId: pago.pagoId,
-              valor: pago.valor,
-              numeroComprobante: pago.numeroComprobante,
-              bancoId: pago.bancoId,
-              createdAt: pago.createdAt,
-              metodo: metodo,
-            );
-          } catch (e) {
-            // Si falla, devolver el pago sin método
-            return pago;
-          }
-        }).toList(),
-      );
-
-      // Crear nueva venta detallada con los pagos actualizados
-      final detalleConMetodos = VentaDetallada(
+      // Mostrar el detalle inmediatamente sin métodos de pago
+      final detalleInicial = VentaDetallada(
         ventaId: detalle.ventaId,
         clienteId: detalle.clienteId,
         ordenId: detalle.ordenId,
@@ -286,19 +263,35 @@ class VentasNotifier extends StateNotifier<VentasState> {
         estadoDian: detalle.estadoDian,
         dianTrackId: detalle.dianTrackId,
         createdAt: detalle.createdAt,
-        pagos: pagosConMetodo,
+        pagos: detalle.pagos,
         detalles: detalle.detalles,
       );
 
       state = state.copyWith(
-        ventaDetallada: detalleConMetodos,
+        ventaDetallada: detalleInicial,
         isLoadingDetail: false,
         errorDetail: null,
       );
+
+      // Cargar métodos de pago de forma asíncrona (sin bloquear)
+      _loadMetodosPagoAsync(detalle);
     } catch (e) {
+      String errorMessage = 'Error al cargar el detalle de la venta';
+
+      // Mejorar mensaje de error según el tipo
+      if (e.toString().contains('timeout')) {
+        errorMessage = 'El servidor está tardando mucho en responder. Por favor, intente nuevamente.';
+      } else if (e.toString().contains('SocketException') || e.toString().contains('Failed host lookup')) {
+        errorMessage = 'Sin conexión a internet. Verifique su conexión.';
+      } else if (e.toString().contains('Status: 404')) {
+        errorMessage = 'Venta no encontrada';
+      } else if (e.toString().contains('Status: 500')) {
+        errorMessage = 'Error en el servidor. Intente más tarde.';
+      }
+
       state = state.copyWith(
         isLoadingDetail: false,
-        errorDetail: e.toString(),
+        errorDetail: errorMessage,
       );
     }
   }
@@ -308,6 +301,86 @@ class VentasNotifier extends StateNotifier<VentasState> {
       ventaDetallada: null,
       errorDetail: null,
     );
+  }
+
+  // Cargar métodos de pago de forma asíncrona (no bloquea la UI)
+  Future<void> _loadMetodosPagoAsync(VentaDetallada detalle) async {
+    try {
+      final datasource = ref.read(ventasRemoteDatasourceProvider);
+
+      // Cargar métodos de pago en paralelo
+      final pagosConMetodo = await Future.wait(
+        detalle.pagos.map((pago) async {
+          try {
+            final metodo = await datasource.getMetodoPago(pagoId: pago.pagoId);
+            return VentaPago(
+              ventaPagoId: pago.ventaPagoId,
+              ventaId: pago.ventaId,
+              pagoId: pago.pagoId,
+              valor: pago.valor,
+              numeroComprobante: pago.numeroComprobante,
+              bancoId: pago.bancoId,
+              createdAt: pago.createdAt,
+              metodo: metodo,
+            );
+          } catch (e) {
+            // Si falla, devolver el pago con método "Desconocido"
+            return VentaPago(
+              ventaPagoId: pago.ventaPagoId,
+              ventaId: pago.ventaId,
+              pagoId: pago.pagoId,
+              valor: pago.valor,
+              numeroComprobante: pago.numeroComprobante,
+              bancoId: pago.bancoId,
+              createdAt: pago.createdAt,
+              metodo: 'Desconocido',
+            );
+          }
+        }).toList(),
+      );
+
+      // Actualizar estado solo si todavía tenemos la venta cargada
+      if (state.ventaDetallada?.ventaId == detalle.ventaId) {
+        final detalleActualizado = VentaDetallada(
+          ventaId: detalle.ventaId,
+          clienteId: detalle.clienteId,
+          ordenId: detalle.ordenId,
+          operadorId: detalle.operadorId,
+          consumidorId: detalle.consumidorId,
+          cajaId: detalle.cajaId,
+          formaPago: detalle.formaPago,
+          fechaVencimiento: detalle.fechaVencimiento,
+          codigoVoucher: detalle.codigoVoucher,
+          subtotalSinImpuestos: detalle.subtotalSinImpuestos,
+          totalDescuentos: detalle.totalDescuentos,
+          totalImpuestos: detalle.totalImpuestos,
+          totalIva: detalle.totalIva,
+          totalInc: detalle.totalInc,
+          totalIca: detalle.totalIca,
+          total: detalle.total,
+          porcentajePropina: detalle.porcentajePropina,
+          valorPropina: detalle.valorPropina,
+          estado: detalle.estado,
+          observacion: detalle.observacion,
+          tipoDocumento: detalle.tipoDocumento,
+          prefijoFactura: detalle.prefijoFactura,
+          numeroFactura: detalle.numeroFactura,
+          fechaEmision: detalle.fechaEmision,
+          cufe: detalle.cufe,
+          qrCode: detalle.qrCode,
+          estadoDian: detalle.estadoDian,
+          dianTrackId: detalle.dianTrackId,
+          createdAt: detalle.createdAt,
+          pagos: pagosConMetodo,
+          detalles: detalle.detalles,
+        );
+
+        state = state.copyWith(ventaDetallada: detalleActualizado);
+      }
+    } catch (e) {
+      // Si falla la carga de métodos de pago, no mostramos error
+      // ya que el detalle principal ya está cargado
+    }
   }
 
   Future<void> setFilters({
