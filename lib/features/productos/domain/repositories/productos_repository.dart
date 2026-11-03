@@ -8,6 +8,7 @@ abstract class ProductosRepository {
     required int pageNumber,
     String? search,
     int? tipoProductoId,
+    bool? activo,
   });
 
   Future<Producto> getProductoDetail({

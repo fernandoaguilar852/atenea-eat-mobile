@@ -12,6 +12,7 @@ class GetProductosUseCase {
     required int pageNumber,
     String? search,
     int? tipoProductoId,
+    bool? activo,
   }) {
     return repository.getProductos(
       clienteId: clienteId,
@@ -19,6 +20,7 @@ class GetProductosUseCase {
       pageNumber: pageNumber,
       search: search,
       tipoProductoId: tipoProductoId,
+      activo: activo,
     );
   }
 }

@@ -47,6 +47,7 @@ class ProductosListState {
   final int currentPage;
   final String? search;
   final int? tipoProductoId;
+  final bool? activo;
 
   ProductosListState({
     this.productosResponse,
@@ -55,6 +56,7 @@ class ProductosListState {
     this.currentPage = 1,
     this.search,
     this.tipoProductoId,
+    this.activo = true,
   });
 
   ProductosListState copyWith({
@@ -64,6 +66,7 @@ class ProductosListState {
     int? currentPage,
     Object? search = _undefined,
     Object? tipoProductoId = _undefined,
+    Object? activo = _undefined,
   }) {
     return ProductosListState(
       productosResponse: productosResponse ?? this.productosResponse,
@@ -72,6 +75,7 @@ class ProductosListState {
       currentPage: currentPage ?? this.currentPage,
       search: search == _undefined ? this.search : search as String?,
       tipoProductoId: tipoProductoId == _undefined ? this.tipoProductoId : tipoProductoId as int?,
+      activo: activo == _undefined ? this.activo : activo as bool?,
     );
   }
 }
@@ -90,6 +94,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     int? pageNumber,
     Object? search = _undefined,
     Object? tipoProductoId = _undefined,
+    Object? activo = _undefined,
   }) async {
     try {
       state = state.copyWith(
@@ -97,6 +102,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         error: null,
         search: search,
         tipoProductoId: tipoProductoId,
+        activo: activo,
       );
 
       final authState = ref.read(authProvider);
@@ -118,6 +124,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         pageNumber: page,
         search: state.search,
         tipoProductoId: state.tipoProductoId,
+        activo: state.activo,
       );
 
       state = state.copyWith(
@@ -226,6 +233,108 @@ final productoDetailProvider = StateNotifierProvider<ProductoDetailNotifier, Pro
   final useCase = ref.watch(getProductoDetailUseCaseProvider);
   return ProductoDetailNotifier(
     getProductoDetailUseCase: useCase,
+    ref: ref,
+  );
+});
+
+// Estado para búsqueda de productos
+class ProductosSearchState {
+  final List<Producto> productos;
+  final bool isLoading;
+  final String? error;
+  final Producto? selectedProducto;
+
+  ProductosSearchState({
+    this.productos = const [],
+    this.isLoading = false,
+    this.error,
+    this.selectedProducto,
+  });
+
+  ProductosSearchState copyWith({
+    List<Producto>? productos,
+    bool? isLoading,
+    String? error,
+    Producto? selectedProducto,
+    bool clearSelected = false,
+  }) {
+    return ProductosSearchState(
+      productos: productos ?? this.productos,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      selectedProducto: clearSelected ? null : (selectedProducto ?? this.selectedProducto),
+    );
+  }
+}
+
+// Notifier para búsqueda de productos
+class ProductosSearchNotifier extends StateNotifier<ProductosSearchState> {
+  final GetProductosUseCase getProductosUseCase;
+  final Ref ref;
+
+  ProductosSearchNotifier({
+    required this.getProductosUseCase,
+    required this.ref,
+  }) : super(ProductosSearchState());
+
+  Future<void> searchProductos(String query) async {
+    if (query.length < 3) {
+      state = ProductosSearchState();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final authState = ref.read(authProvider);
+      final clienteId = authState.user?.clienteId;
+
+      if (clienteId == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'No se encontró el cliente ID',
+        );
+        return;
+      }
+
+      final response = await getProductosUseCase(
+        clienteId: clienteId,
+        pageSize: 10,
+        pageNumber: 1,
+        activo: true,
+        search: query,
+      );
+
+      state = state.copyWith(
+        productos: response.productos,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void selectProducto(Producto producto) {
+    state = state.copyWith(
+      selectedProducto: producto,
+      productos: [],
+    );
+  }
+
+  void clearSearch() {
+    state = ProductosSearchState();
+  }
+}
+
+// Provider global del StateNotifier para búsqueda de productos
+final productosSearchProvider = StateNotifierProvider<ProductosSearchNotifier, ProductosSearchState>((ref) {
+  final getProductosUseCase = ref.watch(getProductosUseCaseProvider);
+
+  return ProductosSearchNotifier(
+    getProductosUseCase: getProductosUseCase,
     ref: ref,
   );
 });

@@ -15,6 +15,7 @@ class ProductosRepositoryImpl implements ProductosRepository {
     required int pageNumber,
     String? search,
     int? tipoProductoId,
+    bool? activo,
   }) async {
     final dto = await remoteDatasource.getProductos(
       clienteId: clienteId,
@@ -22,6 +23,7 @@ class ProductosRepositoryImpl implements ProductosRepository {
       pageNumber: pageNumber,
       search: search,
       tipoProductoId: tipoProductoId,
+      activo: activo,
     );
     return dto.toEntity();
   }

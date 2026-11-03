@@ -1,0 +1,581 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../domain/entities/producto.dart';
+import '../providers/productos_provider.dart';
+import '../widgets/producto_card.dart';
+import '../widgets/productos_search_widget.dart';
+
+class ProductosScreen extends ConsumerStatefulWidget {
+  const ProductosScreen({super.key});
+
+  @override
+  ConsumerState<ProductosScreen> createState() => _ProductosScreenState();
+}
+
+class _ProductosScreenState extends ConsumerState<ProductosScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 200 && !_showScrollToTop) {
+        setState(() => _showScrollToTop = true);
+      } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(productosListProvider.notifier).loadProductos();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  Future<void> _mostrarFiltroActivo() async {
+    final state = ref.read(productosListProvider);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        title: Text(
+          'Filtrar por Estado',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.sp,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                Icons.check_circle,
+                color: state.activo == true ? const Color(0xFF0d6efd) : Colors.white,
+              ),
+              title: const Text('Solo activos', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(productosListProvider.notifier).loadProductos(activo: true);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.cancel,
+                color: state.activo == false ? const Color(0xFF0d6efd) : Colors.white,
+              ),
+              title: const Text('Solo inactivos', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(productosListProvider.notifier).loadProductos(activo: false);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.all_inclusive,
+                color: state.activo == null ? const Color(0xFF0d6efd) : Colors.white,
+              ),
+              title: const Text('Todos', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(productosListProvider.notifier).loadProductos(activo: null);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmarEliminar(Producto producto) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: const Color(0xFFffc107),
+              size: 28.sp,
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'Confirmar Eliminación',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.sp,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          '¿Está seguro de eliminar el producto "${producto.nombre}"?',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.9),
+            fontSize: 14.sp,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFdc3545),
+            ),
+            child: Text(
+              'Eliminar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && mounted) {
+      // TODO: Implementar eliminación cuando exista el endpoint
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF1a1a1a),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.info,
+                color: const Color(0xFF0d6efd),
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Información',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.sp,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'La funcionalidad de eliminar producto aún no está implementada',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 14.sp,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0d6efd),
+              ),
+              child: Text(
+                'Aceptar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _mostrarEditarProducto(Producto producto) {
+    // TODO: Implementar edición cuando exista el endpoint
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.info,
+              color: const Color(0xFF0d6efd),
+              size: 24.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Información',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.sp,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'La funcionalidad de editar producto aún no está implementada',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.9),
+            fontSize: 14.sp,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0d6efd),
+            ),
+            child: Text(
+              'Aceptar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarCrearProducto() {
+    // TODO: Implementar creación cuando exista el endpoint
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a1a),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.info,
+              color: const Color(0xFF0d6efd),
+              size: 24.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Información',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.sp,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'La funcionalidad de crear producto aún no está implementada',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.9),
+            fontSize: 14.sp,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0d6efd),
+            ),
+            child: Text(
+              'Aceptar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(productosListProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              // Barra de búsqueda y filtros
+              Container(
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1a1a1a),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: const Color(0xFF363636),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Widget de búsqueda
+                    const ProductosSearchWidget(),
+
+                    SizedBox(height: 12.h),
+
+                    // Botón de filtro activo
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _mostrarFiltroActivo,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0d6efd),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            icon: Icon(Icons.filter_list, size: 18.sp),
+                            label: Text(
+                              state.activo == null
+                                  ? 'Todos'
+                                  : state.activo == true
+                                      ? 'Solo activos'
+                                      : 'Solo inactivos',
+                              style: TextStyle(fontSize: 12.sp),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Lista de productos
+              Expanded(
+                child: state.isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF0d6efd),
+                        ),
+                      )
+                    : state.error != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 48.sp,
+                                  color: const Color(0xFFdc3545),
+                                ),
+                                SizedBox(height: 16.h),
+                                Text(
+                                  'Error al cargar productos',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  state.error!,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    fontSize: 12.sp,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : state.productosResponse == null ||
+                                state.productosResponse!.productos.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.inventory_2_outlined,
+                                      size: 48.sp,
+                                      color: Colors.white.withValues(alpha: 0.3),
+                                    ),
+                                    SizedBox(height: 16.h),
+                                    Text(
+                                      'No hay productos',
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(alpha: 0.6),
+                                        fontSize: 16.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                controller: _scrollController,
+                                itemCount: state.productosResponse!.productos.length,
+                                itemBuilder: (context, index) {
+                                  final producto = state.productosResponse!.productos[index];
+                                  return ProductoCard(
+                                    producto: producto,
+                                    onEdit: () => _mostrarEditarProducto(producto),
+                                    onDelete: () => _confirmarEliminar(producto),
+                                  );
+                                },
+                              ),
+              ),
+
+              // Paginación
+              if (state.productosResponse != null &&
+                  state.productosResponse!.productos.isNotEmpty)
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1a1a1a),
+                    border: Border(
+                      top: BorderSide(
+                        color: const Color(0xFF363636),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: _buildPaginacion(state.productosResponse!),
+                ),
+            ],
+          ),
+
+          // Botón scroll to top
+          if (_showScrollToTop)
+            Positioned(
+              right: 16.w,
+              bottom: 80.h,
+              child: FloatingActionButton(
+                onPressed: _scrollToTop,
+                backgroundColor: const Color(0xFF0d6efd),
+                child: Icon(Icons.arrow_upward, size: 24.sp),
+              ),
+            ),
+
+          // Botón crear producto (superior derecha)
+          Positioned(
+            top: 16.h,
+            right: 16.w,
+            child: FloatingActionButton(
+              onPressed: _mostrarCrearProducto,
+              backgroundColor: const Color(0xFF0d6efd),
+              child: Icon(Icons.add, size: 24.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaginacion(productosResponse) {
+    final state = ref.watch(productosListProvider);
+    final totalPages = (productosResponse.pagination.totalElement /
+                        productosResponse.pagination.pageSize).ceil();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Botón anterior
+        ElevatedButton.icon(
+          onPressed: state.currentPage > 1
+              ? () => ref.read(productosListProvider.notifier)
+                      .loadProductos(pageNumber: state.currentPage - 1)
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF363636),
+            disabledBackgroundColor: const Color(0xFF2a2a2a),
+            foregroundColor: Colors.white,
+            disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+          ),
+          icon: Icon(Icons.chevron_left, size: 18.sp),
+          label: Text('Anterior', style: TextStyle(fontSize: 12.sp)),
+        ),
+
+        // Indicador de página
+        Column(
+          children: [
+            Text(
+              'Pag. ${state.currentPage} de $totalPages',
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              '${productosResponse.pagination.totalElement} productos',
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: Colors.white.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
+
+        // Botón siguiente
+        ElevatedButton.icon(
+          onPressed: productosResponse.pagination.hasMoreElements
+              ? () => ref.read(productosListProvider.notifier)
+                      .loadProductos(pageNumber: state.currentPage + 1)
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF363636),
+            disabledBackgroundColor: const Color(0xFF2a2a2a),
+            foregroundColor: Colors.white,
+            disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+          ),
+          icon: Icon(Icons.chevron_right, size: 18.sp),
+          label: Text('Siguiente', style: TextStyle(fontSize: 12.sp)),
+        ),
+      ],
+    );
+  }
+}
