@@ -6,6 +6,7 @@ import '../../data/repositories/insumos_repository_impl.dart';
 import '../../domain/repositories/insumos_repository.dart';
 import '../../domain/usecases/get_insumos_usecase.dart';
 import '../../domain/usecases/get_insumo_detail_usecase.dart';
+import '../../domain/usecases/create_insumo_usecase.dart';
 import '../../domain/usecases/update_insumo_usecase.dart';
 import '../../domain/usecases/delete_insumo_usecase.dart';
 import '../../domain/entities/insumos_response.dart';
@@ -32,6 +33,11 @@ final getInsumosUseCaseProvider = Provider((ref) {
 final getInsumoDetailUseCaseProvider = Provider((ref) {
   final repository = ref.watch(insumosRepositoryProvider);
   return GetInsumoDetailUseCase(repository);
+});
+
+final createInsumoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(insumosRepositoryProvider);
+  return CreateInsumoUseCase(repository: repository);
 });
 
 final updateInsumoUseCaseProvider = Provider((ref) {
@@ -91,12 +97,14 @@ class InsumosListState {
 // Notifier de la lista de insumos
 class InsumosListNotifier extends StateNotifier<InsumosListState> {
   final GetInsumosUseCase getInsumosUseCase;
+  final CreateInsumoUseCase createInsumoUseCase;
   final UpdateInsumoUseCase updateInsumoUseCase;
   final DeleteInsumoUseCase deleteInsumoUseCase;
   final Ref ref;
 
   InsumosListNotifier({
     required this.getInsumosUseCase,
+    required this.createInsumoUseCase,
     required this.updateInsumoUseCase,
     required this.deleteInsumoUseCase,
     required this.ref,
@@ -162,11 +170,48 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
     }
   }
 
+  Future<String?> createInsumo({
+    required String nombre,
+    required String unidadBase,
+    required double stockActual,
+    required double stockMinimo,
+    required double costoPromedio,
+    required bool activo,
+  }) async {
+    final authState = ref.read(authProvider);
+    final clienteId = authState.user?.clienteId;
+
+    if (clienteId == null) {
+      return 'No se encontró el cliente';
+    }
+
+    try {
+      await createInsumoUseCase(
+        clienteId: clienteId,
+        nombre: nombre,
+        unidadBase: unidadBase,
+        stockActual: stockActual,
+        stockMinimo: stockMinimo,
+        costoPromedio: costoPromedio,
+        activo: activo,
+      );
+
+      // Recargar la lista después de crear
+      await loadInsumos();
+
+      return null; // Sin error
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
   Future<String?> updateInsumo({
     required int insumoId,
     required String nombre,
     required String unidadBase,
+    required double stockActual,
     required double stockMinimo,
+    required double costoPromedio,
     required bool activo,
   }) async {
     final authState = ref.read(authProvider);
@@ -182,7 +227,9 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
         clienteId: clienteId,
         nombre: nombre,
         unidadBase: unidadBase,
+        stockActual: stockActual,
         stockMinimo: stockMinimo,
+        costoPromedio: costoPromedio,
         activo: activo,
       );
 
@@ -230,11 +277,13 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
 // Provider del notifier de lista
 final insumosListProvider = StateNotifierProvider<InsumosListNotifier, InsumosListState>((ref) {
   final getInsumosUseCase = ref.watch(getInsumosUseCaseProvider);
+  final createInsumoUseCase = ref.watch(createInsumoUseCaseProvider);
   final updateInsumoUseCase = ref.watch(updateInsumoUseCaseProvider);
   final deleteInsumoUseCase = ref.watch(deleteInsumoUseCaseProvider);
 
   return InsumosListNotifier(
     getInsumosUseCase: getInsumosUseCase,
+    createInsumoUseCase: createInsumoUseCase,
     updateInsumoUseCase: updateInsumoUseCase,
     deleteInsumoUseCase: deleteInsumoUseCase,
     ref: ref,

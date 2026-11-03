@@ -15,12 +15,24 @@ abstract class InsumosRepository {
     required int clienteId,
   });
 
+  Future<Insumo> createInsumo({
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockActual,
+    required double stockMinimo,
+    required double costoPromedio,
+    required bool activo,
+  });
+
   Future<void> updateInsumo({
     required int insumoId,
     required int clienteId,
     required String nombre,
     required String unidadBase,
+    required double stockActual,
     required double stockMinimo,
+    required double costoPromedio,
     required bool activo,
   });
 

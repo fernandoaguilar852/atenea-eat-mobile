@@ -47,12 +47,40 @@ class InsumosRepositoryImpl implements InsumosRepository {
   }
 
   @override
+  Future<Insumo> createInsumo({
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockActual,
+    required double stockMinimo,
+    required double costoPromedio,
+    required bool activo,
+  }) async {
+    try {
+      final dto = await remoteDatasource.createInsumo(
+        clienteId: clienteId,
+        nombre: nombre,
+        unidadBase: unidadBase,
+        stockActual: stockActual,
+        stockMinimo: stockMinimo,
+        costoPromedio: costoPromedio,
+        activo: activo,
+      );
+      return dto.toEntity();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> updateInsumo({
     required int insumoId,
     required int clienteId,
     required String nombre,
     required String unidadBase,
+    required double stockActual,
     required double stockMinimo,
+    required double costoPromedio,
     required bool activo,
   }) async {
     try {
@@ -61,7 +89,9 @@ class InsumosRepositoryImpl implements InsumosRepository {
         clienteId: clienteId,
         nombre: nombre,
         unidadBase: unidadBase,
+        stockActual: stockActual,
         stockMinimo: stockMinimo,
+        costoPromedio: costoPromedio,
         activo: activo,
       );
     } catch (e) {

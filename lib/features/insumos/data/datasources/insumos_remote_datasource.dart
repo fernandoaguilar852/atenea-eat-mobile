@@ -17,12 +17,24 @@ abstract class InsumosRemoteDatasource {
     required int clienteId,
   });
 
+  Future<InsumoDto> createInsumo({
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockActual,
+    required double stockMinimo,
+    required double costoPromedio,
+    required bool activo,
+  });
+
   Future<void> updateInsumo({
     required int insumoId,
     required int clienteId,
     required String nombre,
     required String unidadBase,
+    required double stockActual,
     required double stockMinimo,
+    required double costoPromedio,
     required bool activo,
   });
 
@@ -99,19 +111,59 @@ class InsumosRemoteDatasourceImpl implements InsumosRemoteDatasource {
   }
 
   @override
+  Future<InsumoDto> createInsumo({
+    required int clienteId,
+    required String nombre,
+    required String unidadBase,
+    required double stockActual,
+    required double stockMinimo,
+    required double costoPromedio,
+    required bool activo,
+  }) async {
+    try {
+      final body = {
+        'clienteId': clienteId,
+        'nombre': nombre,
+        'unidadBase': unidadBase,
+        'stockActual': stockActual,
+        'stockMinimo': stockMinimo,
+        'costoPromedio': costoPromedio,
+        'activo': activo,
+      };
+
+      final response = await dio.post(
+        ApiConstants.buildUrl(ApiConstants.insumos),
+        data: body,
+      );
+
+      if (response.statusCode == 201) {
+        return InsumoDto.fromJson(response.data['data']);
+      } else {
+        throw Exception('Error al crear insumo - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> updateInsumo({
     required int insumoId,
     required int clienteId,
     required String nombre,
     required String unidadBase,
+    required double stockActual,
     required double stockMinimo,
+    required double costoPromedio,
     required bool activo,
   }) async {
     try {
       final body = {
         'nombre': nombre,
         'unidadBase': unidadBase,
+        'stockActual': stockActual,
         'stockMinimo': stockMinimo,
+        'costoPromedio': costoPromedio,
         'activo': activo,
       };
 

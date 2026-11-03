@@ -10,7 +10,9 @@ class UpdateInsumoUseCase {
     required int clienteId,
     required String nombre,
     required String unidadBase,
+    required double stockActual,
     required double stockMinimo,
+    required double costoPromedio,
     required bool activo,
   }) async {
     return await repository.updateInsumo(
@@ -18,7 +20,9 @@ class UpdateInsumoUseCase {
       clienteId: clienteId,
       nombre: nombre,
       unidadBase: unidadBase,
+      stockActual: stockActual,
       stockMinimo: stockMinimo,
+      costoPromedio: costoPromedio,
       activo: activo,
     );
   }

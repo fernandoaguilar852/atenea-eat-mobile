@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../providers/insumos_provider.dart';
 import '../widgets/insumo_card.dart';
+import '../widgets/crear_insumo_modal.dart';
+import '../widgets/editar_insumo_modal.dart';
 import '../../domain/entities/insumo.dart';
 
 class InsumosScreen extends ConsumerStatefulWidget {
@@ -42,8 +44,6 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
   }
 
   Future<void> _confirmarEliminar(Insumo insumo) async {
-    final messenger = ScaffoldMessenger.of(context);
-
     // Mostrar diálogo de confirmación
     final confirmar = await showDialog<bool>(
       context: context,
@@ -147,7 +147,7 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
       ),
     );
 
-    if (confirmar == true) {
+    if (confirmar == true && mounted) {
       // Llamar al método de eliminar
       final error = await ref.read(insumosListProvider.notifier).deleteInsumo(
         insumoId: insumo.insumoId,
@@ -155,41 +155,71 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
       );
 
       if (mounted) {
-        if (error == null) {
-          // Éxito
-          messenger.showSnackBar(
-            SnackBar(
-              content: const Text('Insumo eliminado exitosamente'),
-              backgroundColor: const Color(0xFF198754),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 3),
+        // Mostrar resultado en un diálogo
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1a1a1a),
+            title: Row(
+              children: [
+                Icon(
+                  error == null ? Icons.check_circle : Icons.error,
+                  color: error == null ? const Color(0xFF198754) : const Color(0xFFdc3545),
+                  size: 28.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  error == null ? 'Éxito' : 'Error',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-          );
-        } else {
-          // Error
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(error),
-              backgroundColor: const Color(0xFFdc3545),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
+            content: Text(
+              error ?? 'Insumo eliminado exitosamente',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14.sp,
+              ),
             ),
-          );
-        }
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: error == null ? const Color(0xFF198754) : const Color(0xFF0d6efd),
+                ),
+                child: Text(
+                  'Aceptar',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+              ),
+            ],
+          ),
+        );
       }
     }
   }
 
-  void _editarInsumo(Insumo insumo) {
-    // TODO: Implementar modal de edición completo
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Editar insumo: ${insumo.nombre}'),
-        backgroundColor: const Color(0xFF0d6efd),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+  Future<void> _editarInsumo(Insumo insumo) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => EditarInsumoModal(insumo: insumo),
     );
+
+    if (result == true && mounted) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Insumo actualizado exitosamente'),
+          backgroundColor: const Color(0xFF198754),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -324,8 +354,8 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
                             onPressed: state.currentPage > 1
                                 ? () => ref.read(insumosListProvider.notifier).previousPage()
                                 : null,
-                            icon: Icon(Icons.chevron_left, size: 20.sp),
-                            label: Text('Anterior', style: TextStyle(fontSize: 14.sp)),
+                            icon: Icon(Icons.chevron_left, size: 18.sp),
+                            label: Text('Anterior', style: TextStyle(fontSize: 12.sp)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2a2a2a),
                               foregroundColor: Colors.white,
@@ -335,15 +365,15 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 16.w),
+                        SizedBox(width: 12.w),
 
                         // Indicador de página
                         Column(
                           children: [
                             Text(
-                              'Página ${state.currentPage}',
+                              'Pag. ${state.currentPage} de ${(insumosResponse.pagination.totalElement / insumosResponse.pagination.pageSize).ceil()}',
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 13.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -352,13 +382,13 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
                             Text(
                               '${insumosResponse.pagination.totalElement} insumos',
                               style: TextStyle(
-                                fontSize: 12.sp,
+                                fontSize: 11.sp,
                                 color: Colors.white.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(width: 16.w),
+                        SizedBox(width: 12.w),
 
                         // Botón siguiente
                         Expanded(
@@ -366,8 +396,8 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
                             onPressed: insumosResponse.pagination.hasMoreElements
                                 ? () => ref.read(insumosListProvider.notifier).nextPage()
                                 : null,
-                            icon: Icon(Icons.chevron_right, size: 20.sp),
-                            label: Text('Siguiente', style: TextStyle(fontSize: 14.sp)),
+                            icon: Icon(Icons.chevron_right, size: 18.sp),
+                            label: Text('Siguiente', style: TextStyle(fontSize: 12.sp)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2a2a2a),
                               foregroundColor: Colors.white,
@@ -392,16 +422,23 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
               borderRadius: BorderRadius.circular(22.r),
               elevation: 4,
               child: InkWell(
-                onTap: () {
-                  // TODO: Implementar modal de crear insumo
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Crear nuevo insumo'),
-                      backgroundColor: const Color(0xFF0d6efd),
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 2),
-                    ),
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final result = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => const CrearInsumoModal(),
                   );
+
+                  if (result == true && mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: const Text('Insumo creado exitosamente'),
+                        backgroundColor: const Color(0xFF198754),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
                 },
                 borderRadius: BorderRadius.circular(22.r),
                 child: Container(
