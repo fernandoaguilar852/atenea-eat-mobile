@@ -113,6 +113,7 @@ class ProductoCard extends StatelessWidget {
 
                       // Stock
                       if (producto.manejaStock) ...[
+                        // Stock disponible (cálculo visible)
                         Row(
                           children: [
                             Icon(
@@ -122,14 +123,46 @@ class ProductoCard extends StatelessWidget {
                             ),
                             SizedBox(width: 4.w),
                             Text(
-                              'Stock: $stockDisponible ${producto.sigla}',
+                              'Disponible: ${producto.stockTotal} - ${producto.stockReservado} = $stockDisponible ${producto.sigla}',
                               style: TextStyle(
                                 color: stockBajo ? Colors.orange : Colors.green,
-                                fontSize: 12.sp,
+                                fontSize: 11.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
+                        ),
+                        SizedBox(height: 2.h),
+                        // Stock reservado y mínimo
+                        Padding(
+                          padding: EdgeInsets.only(left: 18.w),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Reservado: ${producto.stockReservado} ${producto.sigla}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 10.sp,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                '•',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  fontSize: 10.sp,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Mínimo: ${producto.stockMinimo} ${producto.sigla}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 10.sp,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(height: 4.h),
                         // Barra de progreso del stock
