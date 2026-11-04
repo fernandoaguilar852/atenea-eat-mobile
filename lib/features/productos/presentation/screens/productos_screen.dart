@@ -5,6 +5,7 @@ import '../../domain/entities/producto.dart';
 import '../providers/productos_provider.dart';
 import '../widgets/producto_card.dart';
 import '../widgets/productos_search_widget.dart';
+import '../widgets/crear_producto_modal.dart';
 import '../../../categorias/presentation/providers/categorias_provider.dart';
 import '../../../categorias/domain/entities/categoria.dart';
 
@@ -412,54 +413,9 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   }
 
   void _mostrarCrearProducto() {
-    // TODO: Implementar creación cuando exista el endpoint
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1a1a1a),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        title: Row(
-          children: [
-            Icon(
-              Icons.info,
-              color: const Color(0xFF0d6efd),
-              size: 24.sp,
-            ),
-            SizedBox(width: 12.w),
-            Text(
-              'Información',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18.sp,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'La funcionalidad de crear producto aún no está implementada',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.9),
-            fontSize: 14.sp,
-          ),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0d6efd),
-            ),
-            child: Text(
-              'Aceptar',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14.sp,
-              ),
-            ),
-          ),
-        ],
-      ),
+      builder: (context) => const CrearProductoModal(),
     );
   }
 

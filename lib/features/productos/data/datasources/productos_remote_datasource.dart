@@ -18,6 +18,23 @@ abstract class ProductosRemoteDatasource {
     required int clienteId,
     required int productoId,
   });
+
+  Future<ProductoDto> createProducto({
+    required int clienteId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    required int ivaId,
+    String? imagenBase64,
+    String? imagenTipo,
+  });
 }
 
 class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
@@ -80,5 +97,61 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
     );
 
     return ProductoDto.fromJson(response.data['data']);
+  }
+
+  @override
+  Future<ProductoDto> createProducto({
+    required int clienteId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    required int ivaId,
+    String? imagenBase64,
+    String? imagenTipo,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'clienteId': clienteId,
+        'tipoProductoId': tipoProductoId,
+        'nombre': nombre,
+        'codExterno': codExterno,
+        'codBarras': codBarras,
+        'precio': precio,
+        'unidadMedida': unidadMedida,
+        'stockTotal': stockTotal,
+        'stockMinimo': stockMinimo,
+        'manejaStock': manejaStock,
+        'usaReceta': usaReceta,
+        'ivaId': ivaId,
+      };
+
+      if (imagenBase64 != null && imagenBase64.isNotEmpty) {
+        body['imagenBase64'] = imagenBase64;
+      }
+
+      if (imagenTipo != null && imagenTipo.isNotEmpty) {
+        body['imagenTipo'] = imagenTipo;
+      }
+
+      final response = await dio.post(
+        ApiConstants.buildUrl('${ApiConstants.products}?clienteId=$clienteId'),
+        data: body,
+      );
+
+      if (response.statusCode == 201) {
+        return ProductoDto.fromJson(response.data['data']);
+      } else {
+        throw Exception('Error al crear producto - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 }

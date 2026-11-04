@@ -6,6 +6,7 @@ import '../../data/repositories/productos_repository_impl.dart';
 import '../../domain/repositories/productos_repository.dart';
 import '../../domain/usecases/get_productos_usecase.dart';
 import '../../domain/usecases/get_producto_detail_usecase.dart';
+import '../../domain/usecases/create_producto_usecase.dart';
 import '../../domain/entities/productos_response.dart';
 import '../../domain/entities/producto.dart';
 
@@ -30,6 +31,11 @@ final getProductosUseCaseProvider = Provider((ref) {
 final getProductoDetailUseCaseProvider = Provider((ref) {
   final repository = ref.watch(productosRepositoryProvider);
   return GetProductoDetailUseCase(repository);
+});
+
+final createProductoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(productosRepositoryProvider);
+  return CreateProductoUseCase(repository: repository);
 });
 
 // Clase especial para valores undefined
@@ -87,10 +93,12 @@ class ProductosListState {
 // Notifier para el listado de productos
 class ProductosListNotifier extends StateNotifier<ProductosListState> {
   final GetProductosUseCase getProductosUseCase;
+  final CreateProductoUseCase createProductoUseCase;
   final Ref ref;
 
   ProductosListNotifier({
     required this.getProductosUseCase,
+    required this.createProductoUseCase,
     required this.ref,
   }) : super(ProductosListState());
 
@@ -148,6 +156,55 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     }
   }
 
+  Future<String?> createProducto({
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    required int ivaId,
+    String? imagenBase64,
+    String? imagenTipo,
+  }) async {
+    final authState = ref.read(authProvider);
+    final clienteId = authState.user?.clienteId;
+
+    if (clienteId == null) {
+      return 'No se encontró el cliente';
+    }
+
+    try {
+      await createProductoUseCase(
+        clienteId: clienteId,
+        tipoProductoId: tipoProductoId,
+        nombre: nombre,
+        codExterno: codExterno,
+        codBarras: codBarras,
+        precio: precio,
+        unidadMedida: unidadMedida,
+        stockTotal: stockTotal,
+        stockMinimo: stockMinimo,
+        manejaStock: manejaStock,
+        usaReceta: usaReceta,
+        ivaId: ivaId,
+        imagenBase64: imagenBase64,
+        imagenTipo: imagenTipo,
+      );
+
+      // Recargar la lista después de crear
+      await loadProductos();
+
+      return null; // Sin error
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
   void clearProductos() {
     state = ProductosListState();
   }
@@ -155,9 +212,12 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
 
 // Provider del notifier para listado de productos
 final productosListProvider = StateNotifierProvider<ProductosListNotifier, ProductosListState>((ref) {
-  final useCase = ref.watch(getProductosUseCaseProvider);
+  final getProductosUseCase = ref.watch(getProductosUseCaseProvider);
+  final createProductoUseCase = ref.watch(createProductoUseCaseProvider);
+
   return ProductosListNotifier(
-    getProductosUseCase: useCase,
+    getProductosUseCase: getProductosUseCase,
+    createProductoUseCase: createProductoUseCase,
     ref: ref,
   );
 });

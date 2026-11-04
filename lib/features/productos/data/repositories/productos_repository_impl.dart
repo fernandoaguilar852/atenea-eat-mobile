@@ -41,4 +41,40 @@ class ProductosRepositoryImpl implements ProductosRepository {
     );
     return dto.toEntity();
   }
+
+  @override
+  Future<Producto> createProducto({
+    required int clienteId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    required int ivaId,
+    String? imagenBase64,
+    String? imagenTipo,
+  }) async {
+    final dto = await remoteDatasource.createProducto(
+      clienteId: clienteId,
+      tipoProductoId: tipoProductoId,
+      nombre: nombre,
+      codExterno: codExterno,
+      codBarras: codBarras,
+      precio: precio,
+      unidadMedida: unidadMedida,
+      stockTotal: stockTotal,
+      stockMinimo: stockMinimo,
+      manejaStock: manejaStock,
+      usaReceta: usaReceta,
+      ivaId: ivaId,
+      imagenBase64: imagenBase64,
+      imagenTipo: imagenTipo,
+    );
+    return dto.toEntity();
+  }
 }

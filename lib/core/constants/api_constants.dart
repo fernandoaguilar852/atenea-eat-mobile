@@ -29,6 +29,9 @@ class ApiConstants {
   static const String products = '/products';
   static const String tiposProducto = '/tipos-producto';
 
+  // Endpoints de IVAs
+  static const String ivas = '/ivas';
+
   // Endpoints de Consumidores
   static const String consumidores = '/consumidores';
 
