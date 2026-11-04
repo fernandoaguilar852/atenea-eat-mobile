@@ -35,6 +35,28 @@ abstract class ProductosRemoteDatasource {
     String? imagenBase64,
     String? imagenTipo,
   });
+
+  Future<ProductoDto> updateProducto({
+    required int productoId,
+    required int clienteId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    String? imagenBase64,
+    String? imagenTipo,
+  });
+
+  Future<void> deleteProducto({
+    required int productoId,
+    required int clienteId,
+  });
 }
 
 class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
@@ -149,6 +171,78 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
         return ProductoDto.fromJson(response.data['data']);
       } else {
         throw Exception('Error al crear producto - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ProductoDto> updateProducto({
+    required int productoId,
+    required int clienteId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    String? imagenBase64,
+    String? imagenTipo,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'tipoProductoId': tipoProductoId,
+        'nombre': nombre,
+        'codExterno': codExterno,
+        'codBarras': codBarras,
+        'precio': precio,
+        'unidadMedida': unidadMedida,
+        'stockTotal': stockTotal,
+        'stockMinimo': stockMinimo,
+        'manejaStock': manejaStock,
+        'usaReceta': usaReceta,
+      };
+
+      if (imagenBase64 != null && imagenBase64.isNotEmpty) {
+        body['imagenBase64'] = imagenBase64;
+      }
+
+      if (imagenTipo != null && imagenTipo.isNotEmpty) {
+        body['imagenTipo'] = imagenTipo;
+      }
+
+      final response = await dio.patch(
+        ApiConstants.buildUrl('${ApiConstants.products}/$productoId?clienteId=$clienteId'),
+        data: body,
+      );
+
+      if (response.statusCode == 200) {
+        return ProductoDto.fromJson(response.data['data']);
+      } else {
+        throw Exception('Error al actualizar producto - Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteProducto({
+    required int productoId,
+    required int clienteId,
+  }) async {
+    try {
+      final response = await dio.delete(
+        ApiConstants.buildUrl('${ApiConstants.products}/$productoId?clienteId=$clienteId'),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al eliminar producto - Status: ${response.statusCode}');
       }
     } catch (e) {
       rethrow;

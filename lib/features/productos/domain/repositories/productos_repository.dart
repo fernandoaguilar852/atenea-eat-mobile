@@ -33,4 +33,26 @@ abstract class ProductosRepository {
     String? imagenBase64,
     String? imagenTipo,
   });
+
+  Future<Producto> updateProducto({
+    required int productoId,
+    required int clienteId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    String? imagenBase64,
+    String? imagenTipo,
+  });
+
+  Future<void> deleteProducto({
+    required int productoId,
+    required int clienteId,
+  });
 }

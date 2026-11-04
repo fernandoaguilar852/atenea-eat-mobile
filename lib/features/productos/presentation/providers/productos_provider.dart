@@ -7,6 +7,8 @@ import '../../domain/repositories/productos_repository.dart';
 import '../../domain/usecases/get_productos_usecase.dart';
 import '../../domain/usecases/get_producto_detail_usecase.dart';
 import '../../domain/usecases/create_producto_usecase.dart';
+import '../../domain/usecases/update_producto_usecase.dart';
+import '../../domain/usecases/delete_producto_usecase.dart';
 import '../../domain/entities/productos_response.dart';
 import '../../domain/entities/producto.dart';
 
@@ -36,6 +38,16 @@ final getProductoDetailUseCaseProvider = Provider((ref) {
 final createProductoUseCaseProvider = Provider((ref) {
   final repository = ref.watch(productosRepositoryProvider);
   return CreateProductoUseCase(repository: repository);
+});
+
+final updateProductoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(productosRepositoryProvider);
+  return UpdateProductoUseCase(repository: repository);
+});
+
+final deleteProductoUseCaseProvider = Provider((ref) {
+  final repository = ref.watch(productosRepositoryProvider);
+  return DeleteProductoUseCase(repository: repository);
 });
 
 // Clase especial para valores undefined
@@ -94,11 +106,15 @@ class ProductosListState {
 class ProductosListNotifier extends StateNotifier<ProductosListState> {
   final GetProductosUseCase getProductosUseCase;
   final CreateProductoUseCase createProductoUseCase;
+  final UpdateProductoUseCase updateProductoUseCase;
+  final DeleteProductoUseCase deleteProductoUseCase;
   final Ref ref;
 
   ProductosListNotifier({
     required this.getProductosUseCase,
     required this.createProductoUseCase,
+    required this.updateProductoUseCase,
+    required this.deleteProductoUseCase,
     required this.ref,
   }) : super(ProductosListState());
 
@@ -205,6 +221,78 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     }
   }
 
+  Future<String?> updateProducto({
+    required int productoId,
+    required int tipoProductoId,
+    required String nombre,
+    required String codExterno,
+    required String codBarras,
+    required double precio,
+    required String unidadMedida,
+    required int stockTotal,
+    required int stockMinimo,
+    required bool manejaStock,
+    required bool usaReceta,
+    String? imagenBase64,
+    String? imagenTipo,
+  }) async {
+    final authState = ref.read(authProvider);
+    final clienteId = authState.user?.clienteId;
+
+    if (clienteId == null) {
+      return 'No se encontró el cliente';
+    }
+
+    try {
+      await updateProductoUseCase(
+        productoId: productoId,
+        clienteId: clienteId,
+        tipoProductoId: tipoProductoId,
+        nombre: nombre,
+        codExterno: codExterno,
+        codBarras: codBarras,
+        precio: precio,
+        unidadMedida: unidadMedida,
+        stockTotal: stockTotal,
+        stockMinimo: stockMinimo,
+        manejaStock: manejaStock,
+        usaReceta: usaReceta,
+        imagenBase64: imagenBase64,
+        imagenTipo: imagenTipo,
+      );
+
+      // Recargar la lista después de actualizar
+      await loadProductos();
+
+      return null; // Sin error
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
+  Future<String?> deleteProducto({required int productoId}) async {
+    final authState = ref.read(authProvider);
+    final clienteId = authState.user?.clienteId;
+
+    if (clienteId == null) {
+      return 'No se encontró el cliente';
+    }
+
+    try {
+      await deleteProductoUseCase(
+        productoId: productoId,
+        clienteId: clienteId,
+      );
+
+      // Recargar la lista después de eliminar
+      await loadProductos();
+
+      return null; // Sin error
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
   void clearProductos() {
     state = ProductosListState();
   }
@@ -214,10 +302,14 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
 final productosListProvider = StateNotifierProvider<ProductosListNotifier, ProductosListState>((ref) {
   final getProductosUseCase = ref.watch(getProductosUseCaseProvider);
   final createProductoUseCase = ref.watch(createProductoUseCaseProvider);
+  final updateProductoUseCase = ref.watch(updateProductoUseCaseProvider);
+  final deleteProductoUseCase = ref.watch(deleteProductoUseCaseProvider);
 
   return ProductosListNotifier(
     getProductosUseCase: getProductosUseCase,
     createProductoUseCase: createProductoUseCase,
+    updateProductoUseCase: updateProductoUseCase,
+    deleteProductoUseCase: deleteProductoUseCase,
     ref: ref,
   );
 });
