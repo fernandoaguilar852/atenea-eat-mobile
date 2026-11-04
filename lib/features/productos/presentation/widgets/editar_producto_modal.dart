@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../providers/productos_provider.dart';
 import '../../../categorias/presentation/providers/categorias_provider.dart';
 import '../../../ivas/presentation/providers/ivas_provider.dart';
@@ -38,6 +39,7 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
   late bool _manejaStock;
   late bool _usaReceta;
   bool _isLoading = false;
+  bool _isCompressing = false;
 
   File? _imagenSeleccionada;
   String? _imagenBase64;
@@ -99,34 +101,66 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
 
   Future<void> _seleccionarImagen() async {
     try {
+      // Seleccionar imagen de la galería
       final XFile? imagen = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
       );
 
-      if (imagen != null) {
-        final bytes = await imagen.readAsBytes();
-        final base64String = base64Encode(bytes);
+      if (imagen == null) return;
 
-        String mimeType = 'image/jpeg';
-        if (imagen.path.toLowerCase().endsWith('.png')) {
-          mimeType = 'image/png';
-        } else if (imagen.path.toLowerCase().endsWith('.jpg') ||
-                   imagen.path.toLowerCase().endsWith('.jpeg')) {
-          mimeType = 'image/jpeg';
-        }
-
+      // Mostrar imagen inmediatamente (UI Optimista)
+      if (mounted) {
         setState(() {
           _imagenSeleccionada = File(imagen.path);
+          _isCompressing = true;
+        });
+      }
+
+      // Comprimir imagen AGRESIVAMENTE para garantizar tamaño pequeño
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        imagen.path,
+        minWidth: 400,   // MÁS pequeño para garantizar velocidad
+        minHeight: 400,
+        quality: 40,     // Compresión muy agresiva
+        format: CompressFormat.jpeg,  // JPEG es más compatible que WebP
+      );
+
+      if (compressedBytes == null) {
+        throw Exception('Error al comprimir imagen');
+      }
+
+      // Validar que no sea muy grande (máximo 150 KB)
+      if (compressedBytes.length > 150 * 1024) {
+        if (mounted) {
+          setState(() => _isCompressing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('La imagen es muy grande (${(compressedBytes.length / 1024).toStringAsFixed(0)} KB). Intenta con otra imagen.'),
+              backgroundColor: const Color(0xFFdc3545),
+            ),
+          );
+        }
+        return;
+      }
+
+      final base64String = base64Encode(compressedBytes);
+
+      print('📸 Tamaño original: ${await File(imagen.path).length()} bytes');
+      print('📸 Tamaño comprimido: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024).toStringAsFixed(2)} KB)');
+      print('📸 Tamaño base64: ${base64String.length} caracteres');
+      print('📸 Reducción: ${(100 - (compressedBytes.length / await File(imagen.path).length() * 100)).toStringAsFixed(1)}%');
+
+      if (mounted) {
+        setState(() {
           _imagenBase64 = base64String;
-          _imagenTipo = mimeType;
+          _imagenTipo = 'image/jpeg';
           _cambioImagen = true;
+          _isCompressing = false;
         });
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isCompressing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al seleccionar imagen: $e'),
@@ -140,7 +174,9 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
   Future<void> _actualizarProducto() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
     final error = await ref.read(productosListProvider.notifier).updateProducto(
       productoId: widget.producto.productoId,
@@ -158,7 +194,9 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
       imagenTipo: _cambioImagen ? _imagenTipo : null,
     );
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
 
     if (mounted) {
       if (error == null) {
@@ -170,11 +208,55 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: const Color(0xFFdc3545),
-            behavior: SnackBarBehavior.floating,
+        // Mostrar diálogo con el error completo
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1a1a1a),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: const Color(0xFFdc3545),
+                  size: 24.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Error al actualizar producto',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Text(
+                error,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0d6efd),
+                ),
+                child: Text(
+                  'Aceptar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       }
@@ -230,7 +312,7 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
                 // Selector de imagen
                 Center(
                   child: GestureDetector(
-                    onTap: _seleccionarImagen,
+                    onTap: _isCompressing ? null : _seleccionarImagen,
                     child: Container(
                       width: 120.w,
                       height: 120.w,
@@ -242,46 +324,32 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
                           width: 1,
                         ),
                       ),
-                      child: _imagenSeleccionada != null
-                          ? ClipRRect(
+                      child: Stack(
+                        children: [
+                          if (_imagenSeleccionada != null)
+                            ClipRRect(
                               borderRadius: BorderRadius.circular(12.r),
                               child: Image.file(
                                 _imagenSeleccionada!,
                                 fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
                               ),
                             )
-                          : widget.producto.imagen != null && widget.producto.imagen!.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  child: CachedNetworkImage(
-                                    imageUrl: widget.producto.imagen!,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Color(0xFF0d6efd),
-                                      ),
-                                    ),
-                                    errorWidget: (context, url, error) => Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.add_photo_alternate,
-                                          size: 40.sp,
-                                          color: Colors.white.withValues(alpha: 0.5),
-                                        ),
-                                        SizedBox(height: 8.h),
-                                        Text(
-                                          'Cambiar imagen',
-                                          style: TextStyle(
-                                            color: Colors.white.withValues(alpha: 0.5),
-                                            fontSize: 12.sp,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                          else if (widget.producto.imagen != null && widget.producto.imagen!.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12.r),
+                              child: CachedNetworkImage(
+                                imageUrl: widget.producto.imagen!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF0d6efd),
                                   ),
-                                )
-                              : Column(
+                                ),
+                                errorWidget: (context, url, error) => Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
@@ -291,7 +359,7 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
                                     ),
                                     SizedBox(height: 8.h),
                                     Text(
-                                      'Agregar imagen',
+                                      'Cambiar imagen',
                                       style: TextStyle(
                                         color: Colors.white.withValues(alpha: 0.5),
                                         fontSize: 12.sp,
@@ -299,10 +367,59 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
                                     ),
                                   ],
                                 ),
+                              ),
+                            )
+                          else
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  size: 40.sp,
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'Agregar imagen',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                    fontSize: 12.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          // Indicador de compresión
+                          if (_isCompressing)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const CircularProgressIndicator(
+                                      color: Color(0xFF0d6efd),
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    Text(
+                                      'Optimizando...',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                if (_cambioImagen)
+                if (_cambioImagen && !_isCompressing)
                   Padding(
                     padding: EdgeInsets.only(top: 8.h),
                     child: Center(

@@ -162,10 +162,17 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
         body['imagenTipo'] = imagenTipo;
       }
 
+      print('📤 Creando producto - URL: ${ApiConstants.buildUrl('${ApiConstants.products}?clienteId=$clienteId')}');
+      print('📤 Body (sin imagen): ${body.entries.where((e) => e.key != 'imagenBase64').map((e) => '${e.key}: ${e.value}').join(', ')}');
+      print('📤 Tiene imagen: ${imagenBase64 != null && imagenBase64.isNotEmpty}');
+
       final response = await dio.post(
         ApiConstants.buildUrl('${ApiConstants.products}?clienteId=$clienteId'),
         data: body,
       );
+
+      print('✅ Response status: ${response.statusCode}');
+      print('✅ Response data: ${response.data}');
 
       if (response.statusCode == 201) {
         return ProductoDto.fromJson(response.data['data']);
@@ -173,6 +180,11 @@ class ProductosRemoteDatasourceImpl implements ProductosRemoteDatasource {
         throw Exception('Error al crear producto - Status: ${response.statusCode}');
       }
     } catch (e) {
+      print('❌ Error al crear producto: $e');
+      if (e is DioException) {
+        print('❌ Response data: ${e.response?.data}');
+        print('❌ Response status: ${e.response?.statusCode}');
+      }
       rethrow;
     }
   }

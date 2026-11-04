@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/productos_remote_datasource.dart';
@@ -194,6 +195,21 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       return 'No se encontró el cliente';
     }
 
+    print('🔵 Provider - createProducto');
+    print('🔵 clienteId: $clienteId');
+    print('🔵 tipoProductoId: $tipoProductoId');
+    print('🔵 nombre: $nombre');
+    print('🔵 codExterno: $codExterno');
+    print('🔵 codBarras: $codBarras');
+    print('🔵 precio: $precio');
+    print('🔵 unidadMedida: $unidadMedida');
+    print('🔵 stockTotal: $stockTotal');
+    print('🔵 stockMinimo: $stockMinimo');
+    print('🔵 manejaStock: $manejaStock');
+    print('🔵 usaReceta: $usaReceta');
+    print('🔵 ivaId: $ivaId');
+    print('🔵 Tiene imagen: ${imagenBase64 != null && imagenBase64.isNotEmpty}');
+
     try {
       await createProductoUseCase(
         clienteId: clienteId,
@@ -216,6 +232,18 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       await loadProductos();
 
       return null; // Sin error
+    } on DioException catch (e) {
+      // Capturar error de Dio con mensaje del servidor
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          return data['message'].toString();
+        } else if (data is Map && data.containsKey('error')) {
+          return data['error'].toString();
+        }
+        return 'Error del servidor: ${e.response?.statusCode ?? 'desconocido'}';
+      }
+      return e.message ?? 'Error de conexión';
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');
     }
@@ -265,6 +293,18 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       await loadProductos();
 
       return null; // Sin error
+    } on DioException catch (e) {
+      // Capturar error de Dio con mensaje del servidor
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          return data['message'].toString();
+        } else if (data is Map && data.containsKey('error')) {
+          return data['error'].toString();
+        }
+        return 'Error del servidor: ${e.response?.statusCode ?? 'desconocido'}';
+      }
+      return e.message ?? 'Error de conexión';
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');
     }
@@ -288,6 +328,18 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       await loadProductos();
 
       return null; // Sin error
+    } on DioException catch (e) {
+      // Capturar error de Dio con mensaje del servidor
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          return data['message'].toString();
+        } else if (data is Map && data.containsKey('error')) {
+          return data['error'].toString();
+        }
+        return 'Error del servidor: ${e.response?.statusCode ?? 'desconocido'}';
+      }
+      return e.message ?? 'Error de conexión';
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');
     }
