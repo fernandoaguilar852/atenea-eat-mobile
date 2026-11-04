@@ -92,6 +92,7 @@ class ProductosRepositoryImpl implements ProductosRepository {
     required int stockMinimo,
     required bool manejaStock,
     required bool usaReceta,
+    required bool activo,
     String? imagenBase64,
     String? imagenTipo,
   }) async {
@@ -107,6 +108,7 @@ class ProductosRepositoryImpl implements ProductosRepository {
       stockTotal: stockTotal,
       stockMinimo: stockMinimo,
       manejaStock: manejaStock,
+      activo: activo,
       usaReceta: usaReceta,
       imagenBase64: imagenBase64,
       imagenTipo: imagenTipo,

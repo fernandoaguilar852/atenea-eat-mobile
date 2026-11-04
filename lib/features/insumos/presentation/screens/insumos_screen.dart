@@ -18,14 +18,14 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
   bool? _filtroActivo = true; // null = todos, true = activos, false = inactivos
+  bool _hasLoadedData = false;
 
   @override
   void initState() {
     super.initState();
-    // Cargar insumos al iniciar
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _cargarInsumos();
-    });
+
+    // LAZY LOADING: No cargar insumos automáticamente
+    // Los datos se cargarán cuando el widget sea visible
 
     // Listener para mostrar/ocultar botón de scroll to top
     _scrollController.addListener(() {
@@ -226,6 +226,14 @@ class _InsumosScreenState extends ConsumerState<InsumosScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(insumosListProvider);
     final insumosResponse = state.insumosResponse;
+
+    // LAZY LOADING: Cargar datos solo la primera vez que el widget es visible
+    if (!_hasLoadedData && insumosResponse == null && !state.isLoading) {
+      _hasLoadedData = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _cargarInsumos();
+      });
+    }
 
     return Container(
       color: Colors.black,

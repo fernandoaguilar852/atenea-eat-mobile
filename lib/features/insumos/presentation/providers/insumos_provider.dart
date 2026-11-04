@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/insumos_remote_datasource.dart';
@@ -102,6 +103,9 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
   final DeleteInsumoUseCase deleteInsumoUseCase;
   final Ref ref;
 
+  // CACHÉ: Almacena las últimas páginas visitadas para navegación rápida
+  final Map<String, InsumosResponse> _cache = {};
+
   InsumosListNotifier({
     required this.getInsumosUseCase,
     required this.createInsumoUseCase,
@@ -109,6 +113,20 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
     required this.deleteInsumoUseCase,
     required this.ref,
   }) : super(InsumosListState());
+
+  // Genera una clave única para el caché basada en los filtros
+  String _getCacheKey({
+    required int page,
+    String? nombre,
+    bool? activo,
+  }) {
+    return 'page_${page}_nombre_${nombre ?? 'null'}_activo_${activo ?? 'null'}';
+  }
+
+  // Limpia todo el caché (se llama al crear/editar/eliminar)
+  void _clearCache() {
+    _cache.clear();
+  }
 
   Future<void> loadInsumos({
     int? pageNumber,
@@ -136,6 +154,27 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
 
       final page = pageNumber ?? 1;
 
+      // Generar clave del caché
+      final cacheKey = _getCacheKey(
+        page: page,
+        nombre: state.nombre,
+        activo: state.activo,
+      );
+
+      // VERIFICAR CACHÉ: Si existe, usar datos cacheados
+      if (_cache.containsKey(cacheKey)) {
+        final cachedResponse = _cache[cacheKey]!;
+
+        state = state.copyWith(
+          insumosResponse: cachedResponse,
+          isLoading: false,
+          error: null,
+          currentPage: page,
+        );
+        return;
+      }
+
+      // CACHE MISS: Llamar al servidor
       final response = await getInsumosUseCase(
         clienteId: clienteId,
         pageSize: 10,
@@ -143,6 +182,9 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
         activo: state.activo,
         nombre: state.nombre,
       );
+
+      // GUARDAR EN CACHÉ
+      _cache[cacheKey] = response;
 
       state = state.copyWith(
         insumosResponse: response,
@@ -196,6 +238,9 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
         activo: activo,
       );
 
+      // LIMPIAR CACHÉ: Los datos cambiaron
+      _clearCache();
+
       // Recargar la lista después de crear
       await loadInsumos();
 
@@ -221,7 +266,40 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
       return 'No se encontró el cliente';
     }
 
+    // Guardar la lista original por si hay que revertir
+    final originalInsumosResponse = state.insumosResponse;
+
     try {
+      // ACTUALIZACIÓN OPTIMISTA: Actualizar en la lista INMEDIATAMENTE
+      if (state.insumosResponse != null) {
+        final nuevaLista = state.insumosResponse!.insumos.map((insumo) {
+          if (insumo.insumoId == insumoId) {
+            // Crear una copia del insumo con los nuevos valores
+            return Insumo(
+              insumoId: insumo.insumoId,
+              clienteId: insumo.clienteId,
+              nombre: nombre,
+              unidadBase: unidadBase,
+              stockActual: stockActual,
+              stockMinimo: stockMinimo,
+              stockReservado: insumo.stockReservado, // Mantener valor original
+              costoPromedio: costoPromedio,
+              activo: activo,
+              creadoEn: insumo.creadoEn, // Mantener valor original
+            );
+          }
+          return insumo;
+        }).toList();
+
+        state = state.copyWith(
+          insumosResponse: InsumosResponse(
+            insumos: nuevaLista,
+            pagination: state.insumosResponse!.pagination,
+          ),
+        );
+      }
+
+      // Llamar al servidor en background
       await updateInsumoUseCase(
         insumoId: insumoId,
         clienteId: clienteId,
@@ -233,11 +311,32 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
         activo: activo,
       );
 
-      // Recargar la lista después de actualizar
-      await loadInsumos();
+      // LIMPIAR CACHÉ: Los datos cambiaron (solo si el update fue exitoso)
+      _clearCache();
 
       return null; // Sin error
+    } on DioException catch (e) {
+      // REVERTIR: Restaurar la lista original si hay error
+      if (originalInsumosResponse != null) {
+        state = state.copyWith(insumosResponse: originalInsumosResponse);
+      }
+
+      // Capturar error de Dio con mensaje del servidor
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          return data['message'].toString();
+        } else if (data is Map && data.containsKey('error')) {
+          return data['error'].toString();
+        }
+        return 'Error del servidor: ${e.response?.statusCode ?? 'desconocido'}';
+      }
+      return e.message ?? 'Error de conexión';
     } catch (e) {
+      // REVERTIR: Restaurar la lista original si hay error
+      if (originalInsumosResponse != null) {
+        state = state.copyWith(insumosResponse: originalInsumosResponse);
+      }
       return e.toString().replaceAll('Exception: ', '');
     }
   }
@@ -258,17 +357,56 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
       return 'No se encontró el cliente';
     }
 
+    // Guardar la lista original por si hay que revertir
+    final originalInsumosResponse = state.insumosResponse;
+
     try {
+      // ACTUALIZACIÓN OPTIMISTA: Eliminar de la lista INMEDIATAMENTE
+      if (state.insumosResponse != null) {
+        final nuevaLista = state.insumosResponse!.insumos
+            .where((i) => i.insumoId != insumoId)
+            .toList();
+
+        state = state.copyWith(
+          insumosResponse: InsumosResponse(
+            insumos: nuevaLista,
+            pagination: state.insumosResponse!.pagination,
+          ),
+        );
+      }
+
+      // Llamar al servidor en background
       await deleteInsumoUseCase(
         insumoId: insumoId,
         clienteId: clienteId,
       );
 
-      // Recargar la lista después de eliminar
-      await loadInsumos();
+      // LIMPIAR CACHÉ: Los datos cambiaron (solo si el delete fue exitoso)
+      _clearCache();
 
       return null; // Sin error
+    } on DioException catch (e) {
+      // REVERTIR: Restaurar la lista original si hay error
+      if (originalInsumosResponse != null) {
+        state = state.copyWith(insumosResponse: originalInsumosResponse);
+      }
+
+      // Capturar error de Dio con mensaje del servidor
+      if (e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          return data['message'].toString();
+        } else if (data is Map && data.containsKey('error')) {
+          return data['error'].toString();
+        }
+        return 'Error del servidor: ${e.response?.statusCode ?? 'desconocido'}';
+      }
+      return e.message ?? 'Error de conexión';
     } catch (e) {
+      // REVERTIR: Restaurar la lista original si hay error
+      if (originalInsumosResponse != null) {
+        state = state.copyWith(insumosResponse: originalInsumosResponse);
+      }
       return e.toString().replaceAll('Exception: ', '');
     }
   }

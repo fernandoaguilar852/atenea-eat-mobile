@@ -21,6 +21,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
   Categoria? _selectedCategoria;
+  bool _hasLoadedData = false;
 
   @override
   void initState() {
@@ -34,10 +35,8 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
       }
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(categoriasProvider.notifier).loadCategorias();
-      ref.read(productosListProvider.notifier).loadProductos();
-    });
+    // LAZY LOADING: No cargar datos automáticamente
+    // Los datos se cargarán cuando el widget sea visible
   }
 
   @override
@@ -313,6 +312,7 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     if (confirmar == true && mounted) {
       final error = await ref.read(productosListProvider.notifier).deleteProducto(
         productoId: producto.productoId,
+        isActivo: producto.activo,
       );
 
       if (mounted) {
@@ -438,6 +438,15 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(productosListProvider);
+
+    // LAZY LOADING: Cargar datos solo la primera vez que el widget es visible
+    if (!_hasLoadedData && state.productosResponse == null && !state.isLoading) {
+      _hasLoadedData = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(categoriasProvider.notifier).loadCategorias();
+        ref.read(productosListProvider.notifier).loadProductos();
+      });
+    }
 
     return Container(
       color: Colors.black,

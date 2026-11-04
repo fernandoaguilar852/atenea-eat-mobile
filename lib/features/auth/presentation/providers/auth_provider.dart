@@ -95,11 +95,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
         email: email,
         password: password,
       );
+
       state = AuthState(
         user: result.user,
         isAuthenticated: true,
         isLoading: false,
       );
+
       return true;
     } catch (e) {
       state = state.copyWith(

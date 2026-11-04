@@ -47,6 +47,7 @@ abstract class ProductosRepository {
     required int stockMinimo,
     required bool manejaStock,
     required bool usaReceta,
+    required bool activo,
     String? imagenBase64,
     String? imagenTipo,
   });

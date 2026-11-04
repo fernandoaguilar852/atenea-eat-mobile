@@ -111,6 +111,9 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
   final DeleteProductoUseCase deleteProductoUseCase;
   final Ref ref;
 
+  // CACHÉ: Almacena las últimas páginas visitadas para navegación rápida
+  final Map<String, ProductosResponse> _cache = {};
+
   ProductosListNotifier({
     required this.getProductosUseCase,
     required this.createProductoUseCase,
@@ -118,6 +121,22 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     required this.deleteProductoUseCase,
     required this.ref,
   }) : super(ProductosListState());
+
+  // Genera una clave única para el caché basada en los filtros
+  String _getCacheKey({
+    required int page,
+    String? search,
+    int? tipoProductoId,
+    bool? activo,
+    bool? usaReceta,
+  }) {
+    return 'page_${page}_search_${search ?? 'null'}_tipo_${tipoProductoId ?? 'null'}_activo_${activo ?? 'null'}_receta_${usaReceta ?? 'null'}';
+  }
+
+  // Limpia todo el caché (se llama al crear/editar/eliminar)
+  void _clearCache() {
+    _cache.clear();
+  }
 
   Future<void> loadProductos({
     int? pageNumber,
@@ -149,6 +168,29 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
 
       final page = pageNumber ?? 1;
 
+      // Generar clave del caché
+      final cacheKey = _getCacheKey(
+        page: page,
+        search: state.search,
+        tipoProductoId: state.tipoProductoId,
+        activo: state.activo,
+        usaReceta: state.usaReceta,
+      );
+
+      // VERIFICAR CACHÉ: Si existe, usar datos cacheados
+      if (_cache.containsKey(cacheKey)) {
+        final cachedResponse = _cache[cacheKey]!;
+
+        state = state.copyWith(
+          productosResponse: cachedResponse,
+          isLoading: false,
+          error: null,
+          currentPage: page,
+        );
+        return;
+      }
+
+      // CACHE MISS: Llamar al servidor
       final response = await getProductosUseCase(
         clienteId: clienteId,
         pageSize: 10,
@@ -158,6 +200,9 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         activo: state.activo,
         usaReceta: state.usaReceta,
       );
+
+      // GUARDAR EN CACHÉ
+      _cache[cacheKey] = response;
 
       state = state.copyWith(
         productosResponse: response,
@@ -195,21 +240,6 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       return 'No se encontró el cliente';
     }
 
-    print('🔵 Provider - createProducto');
-    print('🔵 clienteId: $clienteId');
-    print('🔵 tipoProductoId: $tipoProductoId');
-    print('🔵 nombre: $nombre');
-    print('🔵 codExterno: $codExterno');
-    print('🔵 codBarras: $codBarras');
-    print('🔵 precio: $precio');
-    print('🔵 unidadMedida: $unidadMedida');
-    print('🔵 stockTotal: $stockTotal');
-    print('🔵 stockMinimo: $stockMinimo');
-    print('🔵 manejaStock: $manejaStock');
-    print('🔵 usaReceta: $usaReceta');
-    print('🔵 ivaId: $ivaId');
-    print('🔵 Tiene imagen: ${imagenBase64 != null && imagenBase64.isNotEmpty}');
-
     try {
       await createProductoUseCase(
         clienteId: clienteId,
@@ -227,6 +257,9 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         imagenBase64: imagenBase64,
         imagenTipo: imagenTipo,
       );
+
+      // LIMPIAR CACHÉ: Los datos cambiaron
+      _clearCache();
 
       // Recargar la lista después de crear
       await loadProductos();
@@ -261,6 +294,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     required int stockMinimo,
     required bool manejaStock,
     required bool usaReceta,
+    required bool activo,
     String? imagenBase64,
     String? imagenTipo,
   }) async {
@@ -285,9 +319,13 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
         stockMinimo: stockMinimo,
         manejaStock: manejaStock,
         usaReceta: usaReceta,
+        activo: activo,
         imagenBase64: imagenBase64,
         imagenTipo: imagenTipo,
       );
+
+      // LIMPIAR CACHÉ: Los datos cambiaron
+      _clearCache();
 
       // Recargar la lista después de actualizar
       await loadProductos();
@@ -310,7 +348,15 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
     }
   }
 
-  Future<String?> deleteProducto({required int productoId}) async {
+  Future<String?> deleteProducto({
+    required int productoId,
+    required bool isActivo,
+  }) async {
+    // Validar que no esté activo
+    if (isActivo) {
+      return 'No se puede eliminar un producto activo. Primero debe desactivarlo.';
+    }
+
     final authState = ref.read(authProvider);
     final clienteId = authState.user?.clienteId;
 
@@ -318,17 +364,40 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       return 'No se encontró el cliente';
     }
 
+    // Guardar la lista original por si hay que revertir
+    final originalProductosResponse = state.productosResponse;
+
     try {
+      // ACTUALIZACIÓN OPTIMISTA: Eliminar de la lista INMEDIATAMENTE
+      if (state.productosResponse != null) {
+        final nuevaLista = state.productosResponse!.productos
+            .where((p) => p.productoId != productoId)
+            .toList();
+
+        state = state.copyWith(
+          productosResponse: ProductosResponse(
+            productos: nuevaLista,
+            pagination: state.productosResponse!.pagination,
+          ),
+        );
+      }
+
+      // Llamar al servidor en background
       await deleteProductoUseCase(
         productoId: productoId,
         clienteId: clienteId,
       );
 
-      // Recargar la lista después de eliminar
-      await loadProductos();
+      // LIMPIAR CACHÉ: Los datos cambiaron (solo si el delete fue exitoso)
+      _clearCache();
 
       return null; // Sin error
     } on DioException catch (e) {
+      // REVERTIR: Restaurar la lista original si hay error
+      if (originalProductosResponse != null) {
+        state = state.copyWith(productosResponse: originalProductosResponse);
+      }
+
       // Capturar error de Dio con mensaje del servidor
       if (e.response?.data != null) {
         final data = e.response!.data;
@@ -341,6 +410,10 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       }
       return e.message ?? 'Error de conexión';
     } catch (e) {
+      // REVERTIR: Restaurar la lista original si hay error
+      if (originalProductosResponse != null) {
+        state = state.copyWith(productosResponse: originalProductosResponse);
+      }
       return e.toString().replaceAll('Exception: ', '');
     }
   }

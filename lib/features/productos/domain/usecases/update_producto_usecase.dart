@@ -19,6 +19,7 @@ class UpdateProductoUseCase {
     required int stockMinimo,
     required bool manejaStock,
     required bool usaReceta,
+    required bool activo,
     String? imagenBase64,
     String? imagenTipo,
   }) async {
@@ -35,6 +36,7 @@ class UpdateProductoUseCase {
       stockMinimo: stockMinimo,
       manejaStock: manejaStock,
       usaReceta: usaReceta,
+      activo: activo,
       imagenBase64: imagenBase64,
       imagenTipo: imagenTipo,
     );

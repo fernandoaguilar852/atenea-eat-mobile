@@ -54,8 +54,8 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
   @override
   void initState() {
     super.initState();
-    // Cargar categorías e IVAs si no están cargados
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Cargar categorías e IVAs y seleccionar el primero
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final categoriasState = ref.read(categoriasProvider);
       if (categoriasState.categoriasResponse == null) {
         ref.read(categoriasProvider.notifier).loadCategorias();
@@ -63,7 +63,20 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
 
       final ivasState = ref.read(ivasProvider);
       if (ivasState.ivasResponse == null) {
-        ref.read(ivasProvider.notifier).loadIvas();
+        await ref.read(ivasProvider.notifier).loadIvas();
+      }
+
+      // Seleccionar el primer IVA de la lista automáticamente
+      if (_ivaIdSeleccionado == null) {
+        final ivasStateUpdated = ref.read(ivasProvider);
+        if (ivasStateUpdated.ivasResponse != null) {
+          final ivasActivos = ivasStateUpdated.ivasResponse!.ivas.where((iva) => iva.activo).toList();
+          if (ivasActivos.isNotEmpty && mounted) {
+            setState(() {
+              _ivaIdSeleccionado = ivasActivos.first.ivaId;
+            });
+          }
+        }
       }
     });
   }
@@ -113,10 +126,54 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
       if (compressedBytes.length > 150 * 1024) {
         if (mounted) {
           setState(() => _isCompressing = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('La imagen es muy grande (${(compressedBytes.length / 1024).toStringAsFixed(0)} KB). Intenta con otra imagen.'),
-              backgroundColor: const Color(0xFFdc3545),
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF1a1a1a),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: const Color(0xFFffc107),
+                    size: 24.sp,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      'Imagen muy grande',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                'La imagen comprimida pesa ${(compressedBytes.length / 1024).toStringAsFixed(0)} KB. Por favor selecciona una imagen más pequeña o toma una foto nueva.',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14.sp,
+                ),
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0d6efd),
+                  ),
+                  child: Text(
+                    'Entendido',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         }
@@ -124,11 +181,6 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
       }
 
       final base64String = base64Encode(compressedBytes);
-
-      print('📸 Tamaño original: ${await File(imagen.path).length()} bytes');
-      print('📸 Tamaño comprimido: ${compressedBytes.length} bytes (${(compressedBytes.length / 1024).toStringAsFixed(2)} KB)');
-      print('📸 Tamaño base64: ${base64String.length} caracteres');
-      print('📸 Reducción: ${(100 - (compressedBytes.length / await File(imagen.path).length() * 100)).toStringAsFixed(1)}%');
 
       if (mounted) {
         setState(() {
@@ -140,10 +192,52 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
     } catch (e) {
       if (mounted) {
         setState(() => _isCompressing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al seleccionar imagen: $e'),
-            backgroundColor: const Color(0xFFdc3545),
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1a1a1a),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: const Color(0xFFdc3545),
+                  size: 24.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Error al procesar imagen',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              'Ocurrió un error al procesar la imagen. Por favor intenta con otra imagen.\n\nDetalle: ${e.toString()}',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14.sp,
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0d6efd),
+                ),
+                child: Text(
+                  'Aceptar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       }
@@ -155,10 +249,52 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
 
     if (_tipoProductoIdSeleccionado == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Debe seleccionar una categoría'),
-            backgroundColor: Color(0xFFdc3545),
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1a1a1a),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: const Color(0xFFffc107),
+                  size: 24.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Campo requerido',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              'Debe seleccionar una categoría para el producto.',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14.sp,
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0d6efd),
+                ),
+                child: Text(
+                  'Entendido',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       }
@@ -167,10 +303,52 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
 
     if (_ivaIdSeleccionado == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Debe seleccionar un IVA'),
-            backgroundColor: Color(0xFFdc3545),
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1a1a1a),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: const Color(0xFFffc107),
+                  size: 24.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Campo requerido',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              'Debe seleccionar un IVA para el producto.',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14.sp,
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0d6efd),
+                ),
+                child: Text(
+                  'Entendido',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       }
@@ -640,7 +818,13 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
                         value: _manejaStock,
                         activeColor: const Color(0xFF198754),
                         onChanged: (value) {
-                          setState(() => _manejaStock = value);
+                          setState(() {
+                            _manejaStock = value;
+                            // Si se activa maneja stock, desactivar usa receta
+                            if (value == true) {
+                              _usaReceta = false;
+                            }
+                          });
                         },
                       ),
                     ],
@@ -674,7 +858,13 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
                         value: _usaReceta,
                         activeColor: const Color(0xFF198754),
                         onChanged: (value) {
-                          setState(() => _usaReceta = value);
+                          setState(() {
+                            _usaReceta = value;
+                            // Si se activa usa receta, desactivar maneja stock
+                            if (value == true) {
+                              _manejaStock = false;
+                            }
+                          });
                         },
                       ),
                     ],
