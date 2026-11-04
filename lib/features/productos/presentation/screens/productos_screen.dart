@@ -239,10 +239,12 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     setState(() {
       _selectedCategoria = null;
     });
+    ref.read(productosSearchProvider.notifier).clearSearch();
     ref.read(productosListProvider.notifier).loadProductos(
           activo: true,
           tipoProductoId: null,
           usaReceta: null,
+          search: null,
         );
   }
 
@@ -437,214 +439,206 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(productosListProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
+    return Container(
+      color: Colors.black,
+      child: Stack(
         children: [
-          Column(
-            children: [
-              // Barra de búsqueda y filtros
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1a1a1a),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFF363636),
-                      width: 1,
-                    ),
+          SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título
+                Text(
+                  'Gestión de Productos',
+                  style: TextStyle(
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                child: Column(
+                SizedBox(height: 8.h),
+                Text(
+                  'Administra el catálogo de productos',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+                SizedBox(height: 24.h),
+
+                // Widget de búsqueda
+                const ProductosSearchWidget(),
+                SizedBox(height: 16.h),
+
+                // Botones de filtros
+                Row(
                   children: [
-                    // Widget de búsqueda
-                    const ProductosSearchWidget(),
-
-                    SizedBox(height: 12.h),
-
-                    // Botones de filtros
-                    Row(
-                      children: [
-                        // Filtro de estado
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _mostrarFiltroActivo,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0d6efd),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 10.h),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                            ),
-                            icon: Icon(Icons.filter_list, size: 16.sp),
-                            label: Text(
-                              state.activo == null
-                                  ? 'Todos'
-                                  : state.activo == true
-                                      ? 'Activos'
-                                      : 'Inactivos',
-                              style: TextStyle(fontSize: 11.sp),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    // Filtro de estado
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _mostrarFiltroActivo,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0d6efd),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
                         ),
-                        SizedBox(width: 8.w),
-                        // Filtro de categoría
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _mostrarFiltroCategoria,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0d6efd),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 10.h),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                            ),
-                            icon: Icon(Icons.category, size: 16.sp),
-                            label: Text(
-                              _selectedCategoria?.nombre ?? 'Categoría',
-                              style: TextStyle(fontSize: 11.sp),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        icon: Icon(Icons.filter_list, size: 16.sp),
+                        label: Text(
+                          state.activo == null
+                              ? 'Todos'
+                              : state.activo == true
+                                  ? 'Activos'
+                                  : 'Inactivos',
+                          style: TextStyle(fontSize: 11.sp),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    // Filtro de categoría
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _mostrarFiltroCategoria,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0d6efd),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
                         ),
-                        SizedBox(width: 8.w),
-                        // Filtro de receta
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _mostrarFiltroReceta,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0d6efd),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 10.h),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                            ),
-                            icon: Icon(Icons.restaurant_menu, size: 16.sp),
-                            label: Text(
-                              state.usaReceta == null
-                                  ? 'Receta'
-                                  : state.usaReceta == true
-                                      ? 'Con'
-                                      : 'Sin',
-                              style: TextStyle(fontSize: 11.sp),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        icon: Icon(Icons.category, size: 16.sp),
+                        label: Text(
+                          _selectedCategoria?.nombre ?? 'Categoría',
+                          style: TextStyle(fontSize: 11.sp),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    // Filtro de receta
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _mostrarFiltroReceta,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0d6efd),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
                         ),
-                        SizedBox(width: 8.w),
-                        // Botón limpiar filtros
-                        IconButton(
-                          onPressed: _limpiarFiltros,
-                          icon: const Icon(Icons.clear_all),
-                          color: Colors.orange,
-                          iconSize: 28.sp,
-                          tooltip: 'Limpiar filtros',
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.orange.withValues(alpha: 0.1),
-                            padding: EdgeInsets.all(10.w),
-                          ),
+                        icon: Icon(Icons.restaurant_menu, size: 16.sp),
+                        label: Text(
+                          state.usaReceta == null
+                              ? 'Receta'
+                              : state.usaReceta == true
+                                  ? 'Con'
+                                  : 'Sin',
+                          style: TextStyle(fontSize: 11.sp),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    // Botón limpiar filtros
+                    IconButton(
+                      onPressed: _limpiarFiltros,
+                      icon: const Icon(Icons.clear_all),
+                      color: Colors.orange,
+                      iconSize: 28.sp,
+                      tooltip: 'Limpiar filtros',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                        padding: EdgeInsets.all(10.w),
+                      ),
                     ),
                   ],
                 ),
-              ),
+                SizedBox(height: 16.h),
 
-              // Lista de productos
-              Expanded(
-                child: state.isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF0d6efd),
-                        ),
-                      )
-                    : state.error != null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 48.sp,
-                                  color: const Color(0xFFdc3545),
-                                ),
-                                SizedBox(height: 16.h),
-                                Text(
-                                  'Error al cargar productos',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16.sp,
-                                  ),
-                                ),
-                                SizedBox(height: 8.h),
-                                Text(
-                                  state.error!,
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.6),
-                                    fontSize: 12.sp,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                // Loading indicator
+                if (state.isLoading && state.productosResponse == null)
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.h),
+                      child: CircularProgressIndicator(
+                        color: const Color(0xFF0d6efd),
+                      ),
+                    ),
+                  )
+
+                // Error message
+                else if (state.error != null && state.productosResponse == null)
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.h),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64.sp,
+                            color: const Color(0xFFdc3545),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            state.error!,
+                            style: TextStyle(
+                              color: const Color(0xFFdc3545),
+                              fontSize: 14.sp,
                             ),
-                          )
-                        : state.productosResponse == null ||
-                                state.productosResponse!.productos.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.inventory_2_outlined,
-                                      size: 48.sp,
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                    ),
-                                    SizedBox(height: 16.h),
-                                    Text(
-                                      'No hay productos',
-                                      style: TextStyle(
-                                        color: Colors.white.withValues(alpha: 0.6),
-                                        fontSize: 16.sp,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ListView.builder(
-                                controller: _scrollController,
-                                itemCount: state.productosResponse!.productos.length,
-                                itemBuilder: (context, index) {
-                                  final producto = state.productosResponse!.productos[index];
-                                  return ProductoCard(
-                                    producto: producto,
-                                    onEdit: () => _mostrarEditarProducto(producto),
-                                    onDelete: () => _confirmarEliminar(producto),
-                                  );
-                                },
-                              ),
-              ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
 
-              // Paginación
-              if (state.productosResponse != null &&
-                  state.productosResponse!.productos.isNotEmpty)
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1a1a1a),
-                    border: Border(
-                      top: BorderSide(
-                        color: const Color(0xFF363636),
-                        width: 1,
+                // Lista de productos
+                else if (state.productosResponse != null && state.productosResponse!.productos.isNotEmpty)
+                  ...state.productosResponse!.productos.map((producto) {
+                    return ProductoCard(
+                      producto: producto,
+                      onEdit: () => _mostrarEditarProducto(producto),
+                      onDelete: () => _confirmarEliminar(producto),
+                    );
+                  })
+                else
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.h),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64.sp,
+                            color: Colors.white24,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'No hay productos',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 16.sp,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  child: _buildPaginacion(state.productosResponse!),
-                ),
-            ],
+
+                SizedBox(height: 16.h),
+
+                // Paginación
+                if (state.productosResponse != null && state.productosResponse!.productos.isNotEmpty)
+                  _buildPaginacion(state.productosResponse!),
+              ],
+            ),
           ),
 
           // Botón crear producto (superior derecha)
@@ -711,71 +705,79 @@ class _ProductosScreenState extends ConsumerState<ProductosScreen> {
     final totalPages = (productosResponse.pagination.totalElement /
                         productosResponse.pagination.pageSize).ceil();
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Botón anterior
-        ElevatedButton.icon(
-          onPressed: state.currentPage > 1
-              ? () => ref.read(productosListProvider.notifier)
-                      .loadProductos(pageNumber: state.currentPage - 1)
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF363636),
-            disabledBackgroundColor: const Color(0xFF2a2a2a),
-            foregroundColor: Colors.white,
-            disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-          ),
-          icon: Icon(Icons.chevron_left, size: 18.sp),
-          label: Text('Anterior', style: TextStyle(fontSize: 12.sp)),
-        ),
-
-        // Indicador de página
-        Column(
-          children: [
-            Text(
-              'Pag. ${state.currentPage} de $totalPages',
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: const Color(0xFF363636)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Botón anterior
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: state.currentPage > 1
+                  ? () => ref.read(productosListProvider.notifier)
+                          .loadProductos(pageNumber: state.currentPage - 1)
+                  : null,
+              icon: Icon(Icons.chevron_left, size: 18.sp),
+              label: Text('Anterior', style: TextStyle(fontSize: 12.sp)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2a2a2a),
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: const Color(0xFF1a1a1a),
+                disabledForegroundColor: Colors.white38,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
               ),
             ),
-            SizedBox(height: 4.h),
-            Text(
-              '${productosResponse.pagination.totalElement} productos',
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: Colors.white.withValues(alpha: 0.6),
+          ),
+          SizedBox(width: 12.w),
+
+          // Indicador de página
+          Column(
+            children: [
+              Text(
+                'Pag. ${state.currentPage} de $totalPages',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                '${productosResponse.pagination.totalElement} productos',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(width: 12.w),
+
+          // Botón siguiente
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: productosResponse.pagination.hasMoreElements
+                  ? () => ref.read(productosListProvider.notifier)
+                          .loadProductos(pageNumber: state.currentPage + 1)
+                  : null,
+              icon: Icon(Icons.chevron_right, size: 18.sp),
+              label: Text('Siguiente', style: TextStyle(fontSize: 12.sp)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2a2a2a),
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: const Color(0xFF1a1a1a),
+                disabledForegroundColor: Colors.white38,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
               ),
             ),
-          ],
-        ),
-
-        // Botón siguiente
-        ElevatedButton.icon(
-          onPressed: productosResponse.pagination.hasMoreElements
-              ? () => ref.read(productosListProvider.notifier)
-                      .loadProductos(pageNumber: state.currentPage + 1)
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF363636),
-            disabledBackgroundColor: const Color(0xFF2a2a2a),
-            foregroundColor: Colors.white,
-            disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
           ),
-          icon: Icon(Icons.chevron_right, size: 18.sp),
-          label: Text('Siguiente', style: TextStyle(fontSize: 12.sp)),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
