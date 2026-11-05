@@ -69,11 +69,16 @@ class _InsumosTabState extends ConsumerState<InsumosTab> {
     );
   }
 
-  void _showInsumoDetail(Insumo insumo) {
-    showDialog(
+  Future<void> _showInsumoDetail(Insumo insumo) async {
+    final result = await showDialog<bool>(
       context: context,
       builder: (context) => InsumoDetailScreen(insumo: insumo),
     );
+
+    // Si se registró un movimiento, recargar la lista de insumos
+    if (result == true && mounted) {
+      ref.read(insumosListProvider.notifier).loadInsumos();
+    }
   }
 
   @override

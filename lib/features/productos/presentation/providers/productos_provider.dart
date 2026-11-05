@@ -134,7 +134,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
   }
 
   // Limpia todo el caché (se llama al crear/editar/eliminar)
-  void _clearCache() {
+  void clearCache() {
     _cache.clear();
   }
 
@@ -259,7 +259,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       );
 
       // LIMPIAR CACHÉ: Los datos cambiaron
-      _clearCache();
+      clearCache();
 
       // Recargar la lista después de crear
       await loadProductos();
@@ -325,7 +325,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       );
 
       // LIMPIAR CACHÉ: Los datos cambiaron
-      _clearCache();
+      clearCache();
 
       // Recargar la lista después de actualizar
       await loadProductos();
@@ -389,7 +389,7 @@ class ProductosListNotifier extends StateNotifier<ProductosListState> {
       );
 
       // LIMPIAR CACHÉ: Los datos cambiaron (solo si el delete fue exitoso)
-      _clearCache();
+      clearCache();
 
       return null; // Sin error
     } on DioException catch (e) {

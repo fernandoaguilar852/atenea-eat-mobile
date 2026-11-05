@@ -181,12 +181,15 @@ class InsumoDetailScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            Navigator.pop(context);
-                            await showDialog<bool>(
+                            final result = await showDialog<bool>(
                               context: context,
                               builder: (context) => EntradaInsumoFormScreen(insumo: insumo),
                             );
-                            // TODO: Implementar lógica después del registro
+
+                            // Si se registró exitosamente, cerrar el detalle e indicar que se debe recargar
+                            if (result == true) {
+                              Navigator.pop(context, true);
+                            }
                           },
                           icon: Icon(Icons.add_circle_outline, size: 20.sp),
                           label: Text('Entrada', style: TextStyle(fontSize: 14.sp)),
@@ -204,12 +207,15 @@ class InsumoDetailScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            Navigator.pop(context);
-                            await showDialog<bool>(
+                            final result = await showDialog<bool>(
                               context: context,
                               builder: (context) => SalidaInsumoFormScreen(insumo: insumo),
                             );
-                            // TODO: Implementar lógica después del registro
+
+                            // Si se registró exitosamente, cerrar el detalle e indicar que se debe recargar
+                            if (result == true) {
+                              Navigator.pop(context, true);
+                            }
                           },
                           icon: Icon(Icons.remove_circle_outline, size: 20.sp),
                           label: Text('Salida', style: TextStyle(fontSize: 14.sp)),

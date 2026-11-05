@@ -83,13 +83,18 @@ class _ProductosTabState extends ConsumerState<ProductosTab> {
     );
   }
 
-  void _showProductoDetail(Producto producto) {
-    showModalBottomSheet(
+  Future<void> _showProductoDetail(Producto producto) async {
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => ProductoDetailScreen(producto: producto),
     );
+
+    // Si se registró un movimiento, recargar la lista de productos
+    if (result == true && mounted) {
+      ref.read(productosListProvider.notifier).loadProductos();
+    }
   }
 
   @override

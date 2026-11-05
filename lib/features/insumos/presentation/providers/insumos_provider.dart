@@ -124,7 +124,7 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
   }
 
   // Limpia todo el caché (se llama al crear/editar/eliminar)
-  void _clearCache() {
+  void clearCache() {
     _cache.clear();
   }
 
@@ -239,7 +239,7 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
       );
 
       // LIMPIAR CACHÉ: Los datos cambiaron
-      _clearCache();
+      clearCache();
 
       // Recargar la lista después de crear
       await loadInsumos();
@@ -312,7 +312,7 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
       );
 
       // LIMPIAR CACHÉ: Los datos cambiaron (solo si el update fue exitoso)
-      _clearCache();
+      clearCache();
 
       return null; // Sin error
     } on DioException catch (e) {
@@ -382,7 +382,7 @@ class InsumosListNotifier extends StateNotifier<InsumosListState> {
       );
 
       // LIMPIAR CACHÉ: Los datos cambiaron (solo si el delete fue exitoso)
-      _clearCache();
+      clearCache();
 
       return null; // Sin error
     } on DioException catch (e) {

@@ -722,7 +722,8 @@ class _TodosTabState extends ConsumerState<_TodosTab> {
 
             // Lista de movimientos
             ...movimientosResponse.movimientos.map((movimiento) {
-              final isNegativo = movimiento.cantidad < 0;
+              final tipoLower = movimiento.tipo.toLowerCase();
+              final isNegativo = tipoLower == 'salida' || tipoLower == 'venta';
               final iconData = movimiento.productoId != null ? Icons.inventory_2 : Icons.science;
 
               return InkWell(
@@ -829,7 +830,7 @@ class _TodosTabState extends ConsumerState<_TodosTab> {
                               ),
                             ),
                             Text(
-                              '${isNegativo ? '' : '+'}${movimiento.cantidad.toStringAsFixed(2)}',
+                              '${isNegativo ? '-' : '+'}${movimiento.cantidad.abs().toStringAsFixed(2)}',
                               style: TextStyle(
                                 color: isNegativo ? Colors.red : Colors.green,
                                 fontSize: 18.sp,

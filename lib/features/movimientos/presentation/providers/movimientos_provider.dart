@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../productos/presentation/providers/productos_provider.dart';
+import '../../../insumos/presentation/providers/insumos_provider.dart';
 import '../../data/datasources/movimientos_remote_datasource.dart';
 import '../../data/repositories/movimientos_repository_impl.dart';
 import '../../domain/repositories/movimientos_repository.dart';
@@ -297,6 +299,14 @@ class RegistrarMovimientoNotifier extends StateNotifier<RegistrarMovimientoState
         error: null,
         movimientoCreado: movimiento,
       );
+
+      // IMPORTANTE: Limpiar cache de productos/insumos para forzar recarga de datos actualizados
+      if (productoId != null) {
+        ref.read(productosListProvider.notifier).clearCache();
+      }
+      if (insumoId != null) {
+        ref.read(insumosListProvider.notifier).clearCache();
+      }
 
       return true;
     } catch (e) {

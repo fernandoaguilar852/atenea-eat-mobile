@@ -35,6 +35,7 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
     _fechaSeleccionada = DateTime.now();
     _impuestoController.text = '0';
     _descuentoController.text = '0';
+    _observacionController.text = 'NA';
   }
 
   @override
