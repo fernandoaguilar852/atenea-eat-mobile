@@ -1,4 +1,3 @@
-import 'package:jwt_decode/jwt_decode.dart' as jwt_decode;
 import '../../../../core/services/credentials_storage_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -35,6 +34,24 @@ class AuthRepositoryImpl implements AuthRepository {
       await storageService.saveAccessToken(response.data.accessToken);
       await storageService.saveRefreshToken(response.data.refreshToken);
 
+      // OPTIMIZACIÓN: Guardar datos del usuario en cache para acceso rápido
+      await storageService.saveUserData(
+        usuarioId: user.usuarioId,
+        clienteId: user.clienteId,
+        rolId: user.rolId,
+        nombre: user.nombre,
+        email: user.email,
+        activo: user.activo,
+        nombreRol: user.nombreRol,
+        prefijo: user.prefijo,
+        estadoPlan: user.estadoPlan,
+        diasActivos: user.diasActivos,
+        sessionId: user.sessionId,
+        createdAt: user.createdAt,
+        tokenIssuedAt: user.tokenIssuedAt,
+        tokenExpiresAt: user.tokenExpiresAt,
+      );
+
       return (
         accessToken: response.data.accessToken,
         refreshToken: response.data.refreshToken,
@@ -59,6 +76,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Limpiar storage local siempre (incluso si el API falla)
       await storageService.clearTokens();
       await storageService.clearCredentials();
+      await storageService.clearUserData(); // Limpiar cache de datos del usuario
     }
   }
 
@@ -68,33 +86,50 @@ class AuthRepositoryImpl implements AuthRepository {
       final token = await storageService.getAccessToken();
       if (token == null) return null;
 
-      // Decodificar el token JWT para obtener los datos del usuario
-      final payload = jwt_decode.Jwt.parseJwt(token);
+      // OPTIMIZACIÓN: Leer datos del cache en lugar de decodificar JWT
+      final usuarioId = await storageService.getUserId();
+      final clienteId = await storageService.getClienteId();
+      final rolId = await storageService.getRolId();
+      final nombre = await storageService.getNombre();
+      final email = await storageService.getUserEmail();
+      final activo = await storageService.getActivo();
+      final nombreRol = await storageService.getNombreRol();
+      final prefijo = await storageService.getPrefijo();
+      final estadoPlan = await storageService.getEstadoPlan();
+      final diasActivos = await storageService.getDiasActivos();
+      final sessionId = await storageService.getSessionId();
+      final createdAt = await storageService.getCreatedAt();
+      final tokenIssuedAt = await storageService.getTokenIssuedAt();
+      final tokenExpiresAt = await storageService.getTokenExpiresAt();
 
-      final iat = payload['iat'] as int?;
-      final exp = payload['exp'] as int?;
+      // Si faltan datos en cache, retornar null
+      if (usuarioId == null ||
+          clienteId == null ||
+          rolId == null ||
+          nombre == null ||
+          email == null ||
+          nombreRol == null ||
+          prefijo == null ||
+          estadoPlan == null ||
+          diasActivos == null) {
+        return null;
+      }
 
       return User(
-        usuarioId: payload['usuarioId'] as int,
-        clienteId: payload['clienteId'] as int,
-        rolId: payload['rolId'] as int,
-        nombre: payload['nombre'] as String,
-        email: payload['email'] as String,
-        activo: payload['activo'] as bool? ?? true,
-        nombreRol: payload['nombreRol'] as String,
-        prefijo: payload['prefijo'] as String,
-        estadoPlan: payload['estadoPlan'] as String,
-        diasActivos: payload['diasActivos'] as int,
-        sessionId: payload['sessionId'] as String?,
-        createdAt: payload['createdAt'] != null
-            ? DateTime.parse(payload['createdAt'] as String)
-            : null,
-        tokenIssuedAt: iat != null
-            ? DateTime.fromMillisecondsSinceEpoch(iat * 1000)
-            : null,
-        tokenExpiresAt: exp != null
-            ? DateTime.fromMillisecondsSinceEpoch(exp * 1000)
-            : null,
+        usuarioId: usuarioId,
+        clienteId: clienteId,
+        rolId: rolId,
+        nombre: nombre,
+        email: email,
+        activo: activo ?? true,
+        nombreRol: nombreRol,
+        prefijo: prefijo,
+        estadoPlan: estadoPlan,
+        diasActivos: diasActivos,
+        sessionId: sessionId,
+        createdAt: createdAt,
+        tokenIssuedAt: tokenIssuedAt,
+        tokenExpiresAt: tokenExpiresAt,
       );
     } catch (e) {
       return null;

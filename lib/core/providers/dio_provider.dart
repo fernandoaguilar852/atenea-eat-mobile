@@ -53,9 +53,10 @@ final dioProvider = Provider<Dio>((ref) {
         if (error.response?.statusCode == 401) {
           // Token expirado - limpiar sesión y redirigir al login
           try {
-            // Limpiar tokens almacenados
+            // Limpiar tokens y cache de datos del usuario
             final storage = CredentialsStorageService();
             await storage.clearTokens();
+            await storage.clearUserData();
 
             // Redirigir al login (el estado de auth se limpiará automáticamente)
             NavigationService().navigateToLogin();

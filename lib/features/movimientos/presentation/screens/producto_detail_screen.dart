@@ -200,7 +200,7 @@ class ProductoDetailScreen extends StatelessWidget {
                             );
 
                             // Si se registró exitosamente, cerrar el detalle e indicar que se debe recargar
-                            if (result == true) {
+                            if (result == true && context.mounted) {
                               Navigator.pop(context, true);
                             }
                           },
@@ -226,7 +226,7 @@ class ProductoDetailScreen extends StatelessWidget {
                             );
 
                             // Si se registró exitosamente, cerrar el detalle e indicar que se debe recargar
-                            if (result == true) {
+                            if (result == true && context.mounted) {
                               Navigator.pop(context, true);
                             }
                           },
