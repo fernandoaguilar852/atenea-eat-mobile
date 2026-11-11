@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../providers/productos_provider.dart';
 import '../../../categorias/presentation/providers/categorias_provider.dart';
 import '../../../ivas/presentation/providers/ivas_provider.dart';
@@ -366,8 +367,8 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
       codBarras: _codBarrasController.text.trim(),
       precio: double.parse(_precioController.text),
       unidadMedida: _unidadMedidaSeleccionada,
-      stockTotal: int.parse(_stockTotalController.text),
-      stockMinimo: int.parse(_stockMinimoController.text),
+      stockTotal: parseDecimal(_stockTotalController.text)!,
+      stockMinimo: parseDecimal(_stockMinimoController.text)!,
       manejaStock: _manejaStock,
       usaReceta: _usaReceta,
       ivaId: _ivaIdSeleccionado!,
@@ -719,15 +720,15 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
                         label: 'Stock Total *',
                         controller: _stockTotalController,
                         hint: '0',
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
+                          SingleDecimalInputFormatter(),
                         ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Requerido';
                           }
-                          final num = int.tryParse(value);
+                          final num = parseDecimal(value);
                           if (num == null || num < 0) {
                             return 'Inválido';
                           }
@@ -741,15 +742,15 @@ class _CrearProductoModalState extends ConsumerState<CrearProductoModal> {
                         label: 'Stock Mínimo *',
                         controller: _stockMinimoController,
                         hint: '0',
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
+                          SingleDecimalInputFormatter(),
                         ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Requerido';
                           }
-                          final num = int.tryParse(value);
+                          final num = parseDecimal(value);
                           if (num == null || num < 0) {
                             return 'Inválido';
                           }

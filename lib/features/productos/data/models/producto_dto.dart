@@ -11,9 +11,9 @@ class ProductoDto {
   final double precio;
   final String unidadMedida;
   final String sigla;
-  final int stockTotal;
-  final int stockReservado;
-  final int stockMinimo;
+  final double stockTotal;
+  final double stockReservado;
+  final double stockMinimo;
   final bool manejaStock;
   final bool usaReceta;
   final bool activo;
@@ -53,9 +53,9 @@ class ProductoDto {
           : json['precio'] as double,
       unidadMedida: json['unidadMedida'] as String,
       sigla: json['sigla'] as String,
-      stockTotal: json['stockTotal'] as int,
-      stockReservado: json['stockReservado'] as int,
-      stockMinimo: json['stockMinimo'] as int,
+      stockTotal: (json['stockTotal'] as num).toDouble(),
+      stockReservado: (json['stockReservado'] as num).toDouble(),
+      stockMinimo: (json['stockMinimo'] as num).toDouble(),
       manejaStock: json['manejaStock'] as bool,
       usaReceta: json['usaReceta'] as bool,
       activo: json['activo'] as bool,

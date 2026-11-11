@@ -12,7 +12,7 @@ class MovimientoDetalleDto {
   final double costo;
   final double impuesto;
   final double descuentoUnidad;
-  final int cantidad;
+  final double cantidad;
   final String observacion;
   final String fecha;
   final String createdAt;
@@ -58,7 +58,7 @@ class MovimientoDetalleDto {
       costo: (json['costo'] as num).toDouble(),
       impuesto: (json['impuesto'] as num).toDouble(),
       descuentoUnidad: (json['descuentoUnidad'] as num).toDouble(),
-      cantidad: json['cantidad'] as int,
+      cantidad: (json['cantidad'] as num).toDouble(),
       observacion: json['observacion'] as String,
       fecha: json['fecha'] as String,
       createdAt: json['createdAt'] as String,

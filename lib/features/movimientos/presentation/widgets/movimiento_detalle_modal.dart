@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../insumos/presentation/providers/insumos_provider.dart';
+import '../../../productos/presentation/providers/productos_provider.dart';
 import '../providers/movimientos_provider.dart';
 import '../../domain/entities/movimiento_detalle.dart';
 import '../screens/editar_movimiento_form_screen.dart';
@@ -602,21 +604,33 @@ class _MovimientoDetalleModalState extends ConsumerState<MovimientoDetalleModal>
                             return;
                           }
 
+                          // Guardar referencias antes de cerrar el modal (después ya no está montado)
+                          final detalle = _detalle!;
+                          final movimientosNotifier = ref.read(movimientosProvider.notifier);
+                          final productosNotifier = ref.read(productosListProvider.notifier);
+                          final insumosNotifier = ref.read(insumosListProvider.notifier);
+                          final navigator = Navigator.of(context);
+
                           // Cerrar el modal de detalle
-                          Navigator.pop(context);
+                          navigator.pop();
 
                           // Abrir formulario de edición
                           final resultado = await showDialog(
-                            context: context,
+                            context: navigator.context,
                             builder: (context) => EditarMovimientoFormScreen(
-                              detalle: _detalle!,
+                              detalle: detalle,
                             ),
                           );
 
-                          // Si se actualizó, recargar la lista y el detalle
-                          if (resultado == true && mounted) {
-                            ref.read(movimientosProvider.notifier).loadMovimientos();
-                            _loadDetalle(); // Recargar detalle en el modal
+                          // Si se actualizó, recargar la lista y limpiar cache de stock
+                          if (resultado == true) {
+                            movimientosNotifier.loadMovimientos();
+                            if (detalle.productoId != null) {
+                              productosNotifier.clearCache();
+                            }
+                            if (detalle.insumoId != null) {
+                              insumosNotifier.clearCache();
+                            }
                           }
                         },
                         icon: Icon(Icons.edit, size: 18.sp),

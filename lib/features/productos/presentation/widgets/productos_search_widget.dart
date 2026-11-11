@@ -1,3 +1,4 @@
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -157,7 +158,7 @@ class _ProductosSearchWidgetState extends ConsumerState<ProductosSearchWidget> {
                   ),
                 ),
                 subtitle: Text(
-                  '\$${producto.precio.toStringAsFixed(2)} - Stock: ${producto.stockTotal}',
+                  '\$${producto.precio.toStringAsFixed(2)} - Stock: ${formatDecimal(producto.stockTotal)}',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 11.sp,

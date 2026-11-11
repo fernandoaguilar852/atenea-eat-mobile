@@ -1,3 +1,4 @@
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../domain/entities/producto.dart';
@@ -123,7 +124,7 @@ class ProductoCard extends StatelessWidget {
                             ),
                             SizedBox(width: 4.w),
                             Text(
-                              'Disponible: ${producto.stockTotal} - ${producto.stockReservado} = $stockDisponible ${producto.sigla}',
+                              'Disponible: ${formatDecimal(producto.stockTotal)} - ${formatDecimal(producto.stockReservado)} = ${formatDecimal(stockDisponible)} ${producto.sigla}',
                               style: TextStyle(
                                 color: stockBajo ? Colors.orange : Colors.green,
                                 fontSize: 11.sp,
@@ -155,7 +156,7 @@ class ProductoCard extends StatelessWidget {
                               ),
                               SizedBox(width: 8.w),
                               Text(
-                                'Mínimo: ${producto.stockMinimo} ${producto.sigla}',
+                                'Mínimo: ${formatDecimal(producto.stockMinimo)} ${producto.sigla}',
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.5),
                                   fontSize: 10.sp,

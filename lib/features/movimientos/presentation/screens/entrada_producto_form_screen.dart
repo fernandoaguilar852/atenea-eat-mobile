@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../productos/domain/entities/producto.dart';
 import '../../../proveedores/domain/entities/proveedor.dart';
 import '../../../proveedores/presentation/widgets/proveedor_selector.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../providers/movimientos_provider.dart';
 
 class EntradaProductoFormScreen extends ConsumerStatefulWidget {
@@ -110,10 +111,10 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
           productoId: widget.producto.productoId,
           proveedorId: _proveedorSeleccionado?.proveedorId,
           tipo: 'entrada',
-          costo: double.parse(_costoController.text),
-          impuesto: double.parse(_impuestoController.text),
-          descuentoUnidad: double.parse(_descuentoController.text),
-          cantidad: int.parse(_cantidadController.text),
+          costo: parseDecimal(_costoController.text)!,
+          impuesto: parseDecimal(_impuestoController.text)!,
+          descuentoUnidad: parseDecimal(_descuentoController.text)!,
+          cantidad: parseDecimal(_cantidadController.text)!,
           observacion: _observacionController.text,
           fecha: _formatFechaForApi(_fechaSeleccionada!),
         );
@@ -226,7 +227,8 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                                 SizedBox(height: 6.h),
                                 TextFormField(
                                   controller: _cantidadController,
-                                  keyboardType: TextInputType.number,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: 'Cant.',
@@ -241,7 +243,8 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (int.tryParse(value) == null || int.parse(value) <= 0) return 'Inválido';
+                                    final cant = parseDecimal(value);
+                                    if (cant == null || cant <= 0) return 'Inválido';
                                     return null;
                                   },
                                 ),
@@ -301,6 +304,7 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                                 TextFormField(
                                   controller: _costoController,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: '0.00',
@@ -315,7 +319,8 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
+                                    final num = parseDecimal(value);
+                                    if (num == null || num < 0) return 'Inválido';
                                     return null;
                                   },
                                 ),
@@ -332,6 +337,7 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                                 TextFormField(
                                   controller: _impuestoController,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: '0.00',
@@ -346,7 +352,8 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
+                                    final num = parseDecimal(value);
+                                    if (num == null || num < 0) return 'Inválido';
                                     return null;
                                   },
                                 ),
@@ -363,6 +370,7 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                       TextFormField(
                         controller: _descuentoController,
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [SingleDecimalInputFormatter()],
                         style: TextStyle(color: Colors.white, fontSize: 13.sp),
                         decoration: InputDecoration(
                           hintText: '0.00',
@@ -377,7 +385,8 @@ class _EntradaProductoFormScreenState extends ConsumerState<EntradaProductoFormS
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Requerido';
-                          if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
+                          final num = parseDecimal(value);
+                                    if (num == null || num < 0) return 'Inválido';
                           return null;
                         },
                       ),

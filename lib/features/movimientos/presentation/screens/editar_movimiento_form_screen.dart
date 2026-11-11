@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../../domain/entities/movimiento_detalle.dart';
 // import '../../../proveedores/domain/entities/proveedor.dart'; // TODO: Para funcionalidad futura
 // import '../../../proveedores/presentation/widgets/proveedor_selector.dart'; // TODO: Para funcionalidad futura
@@ -37,7 +38,7 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
     _costoController = TextEditingController(text: widget.detalle.costo.toString());
     _impuestoController = TextEditingController(text: widget.detalle.impuesto.toString());
     _descuentoController = TextEditingController(text: widget.detalle.descuentoUnidad.toString());
-    _cantidadController = TextEditingController(text: widget.detalle.cantidad.toString());
+    _cantidadController = TextEditingController(text: formatDecimal(widget.detalle.cantidad));
     _observacionController = TextEditingController(text: widget.detalle.observacion);
     _fechaSeleccionada = DateTime.parse(widget.detalle.fecha);
 
@@ -200,7 +201,7 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
       await useCase(
         movimientoId: widget.detalle.movimientoId,
         clienteId: clienteId,
-        cantidad: double.parse(_cantidadController.text),
+        cantidad: parseDecimal(_cantidadController.text)!,
         observacion: _observacionController.text.trim(),
         updatedByUsuarioId: usuarioId,
       );
@@ -338,7 +339,8 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
                                 SizedBox(height: 6.h),
                                 TextFormField(
                                   controller: _cantidadController,
-                                  keyboardType: TextInputType.number,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: 'Cant.',
@@ -353,7 +355,8 @@ class _EditarMovimientoFormScreenState extends ConsumerState<EditarMovimientoFor
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (int.tryParse(value) == null || int.parse(value) <= 0) return 'Inválido';
+                                    final cant = parseDecimal(value);
+                                    if (cant == null || cant <= 0) return 'Inválido';
                                     return null;
                                   },
                                 ),

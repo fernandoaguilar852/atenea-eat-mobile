@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../providers/insumos_provider.dart';
 import '../../domain/entities/insumo.dart';
 
@@ -40,8 +41,8 @@ class _EditarInsumoModalState extends ConsumerState<EditarInsumoModal> {
   void initState() {
     super.initState();
     _nombreController = TextEditingController(text: widget.insumo.nombre);
-    _stockActualController = TextEditingController(text: widget.insumo.stockActual.toString());
-    _stockMinimoController = TextEditingController(text: widget.insumo.stockMinimo.toString());
+    _stockActualController = TextEditingController(text: formatDecimal(widget.insumo.stockActual));
+    _stockMinimoController = TextEditingController(text: formatDecimal(widget.insumo.stockMinimo));
     _costoPromedioController = TextEditingController(text: widget.insumo.costoPromedio.toString());
     _unidadBaseSeleccionada = widget.insumo.unidadBase;
     _activo = widget.insumo.activo;
@@ -65,8 +66,8 @@ class _EditarInsumoModalState extends ConsumerState<EditarInsumoModal> {
       insumoId: widget.insumo.insumoId,
       nombre: _nombreController.text.trim(),
       unidadBase: _unidadBaseSeleccionada,
-      stockActual: double.parse(_stockActualController.text),
-      stockMinimo: double.parse(_stockMinimoController.text),
+      stockActual: parseDecimal(_stockActualController.text)!,
+      stockMinimo: parseDecimal(_stockMinimoController.text)!,
       costoPromedio: double.parse(_costoPromedioController.text),
       activo: _activo,
     );
@@ -257,7 +258,7 @@ class _EditarInsumoModalState extends ConsumerState<EditarInsumoModal> {
                             style: TextStyle(color: Colors.white, fontSize: 14.sp),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+                              SingleDecimalInputFormatter(),
                             ],
                             decoration: InputDecoration(
                               hintText: '0.00',
@@ -298,7 +299,7 @@ class _EditarInsumoModalState extends ConsumerState<EditarInsumoModal> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Requerido';
                               }
-                              final num = double.tryParse(value);
+                              final num = parseDecimal(value);
                               if (num == null || num < 0) {
                                 return 'Inválido';
                               }
@@ -326,7 +327,7 @@ class _EditarInsumoModalState extends ConsumerState<EditarInsumoModal> {
                             style: TextStyle(color: Colors.white, fontSize: 14.sp),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+                              SingleDecimalInputFormatter(),
                             ],
                             decoration: InputDecoration(
                               hintText: '0.00',
@@ -367,7 +368,7 @@ class _EditarInsumoModalState extends ConsumerState<EditarInsumoModal> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Requerido';
                               }
-                              final num = double.tryParse(value);
+                              final num = parseDecimal(value);
                               if (num == null || num < 0) {
                                 return 'Inválido';
                               }

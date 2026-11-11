@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../productos/domain/entities/producto.dart';
 import '../../../proveedores/domain/entities/proveedor.dart';
 import '../../../proveedores/presentation/widgets/proveedor_selector.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../providers/movimientos_provider.dart';
 
 class SalidaProductoFormScreen extends ConsumerStatefulWidget {
@@ -107,12 +108,12 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
     }
 
     final stockDisponible = widget.producto.stockTotal - widget.producto.stockReservado;
-    final cantidadSalida = int.parse(_cantidadController.text);
+    final cantidadSalida = parseDecimal(_cantidadController.text)!;
 
     if (cantidadSalida > stockDisponible) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Stock insuficiente. Disponible: $stockDisponible'),
+          content: Text('Stock insuficiente. Disponible: ${formatDecimal(stockDisponible)}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -123,9 +124,9 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
           productoId: widget.producto.productoId,
           proveedorId: _proveedorSeleccionado?.proveedorId,
           tipo: 'salida',
-          costo: double.parse(_costoController.text),
-          impuesto: double.parse(_impuestoController.text),
-          descuentoUnidad: double.parse(_descuentoController.text),
+          costo: parseDecimal(_costoController.text)!,
+          impuesto: parseDecimal(_impuestoController.text)!,
+          descuentoUnidad: parseDecimal(_descuentoController.text)!,
           cantidad: cantidadSalida,
           observacion: _observacionController.text,
           fecha: _formatFechaForApi(_fechaSeleccionada!),
@@ -207,7 +208,7 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Disponible: $stockDisponible ${widget.producto.sigla}',
+                          'Disponible: ${formatDecimal(stockDisponible)} ${widget.producto.sigla}',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 11.sp,
@@ -248,7 +249,8 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                                 SizedBox(height: 6.h),
                                 TextFormField(
                                   controller: _cantidadController,
-                                  keyboardType: TextInputType.number,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: 'Cant.',
@@ -263,8 +265,9 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (int.tryParse(value) == null || int.parse(value) <= 0) return 'Inválido';
-                                    if (int.parse(value) > stockDisponible) return 'Excede stock';
+                                    final cant = parseDecimal(value);
+                                    if (cant == null || cant <= 0) return 'Inválido';
+                                    if (cant > stockDisponible) return 'Excede stock';
                                     return null;
                                   },
                                 ),
@@ -324,6 +327,7 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                                 TextFormField(
                                   controller: _costoController,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: '0.00',
@@ -338,7 +342,8 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
+                                    final num = parseDecimal(value);
+                                    if (num == null || num < 0) return 'Inválido';
                                     return null;
                                   },
                                 ),
@@ -355,6 +360,7 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                                 TextFormField(
                                   controller: _impuestoController,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [SingleDecimalInputFormatter()],
                                   style: TextStyle(color: Colors.white, fontSize: 13.sp),
                                   decoration: InputDecoration(
                                     hintText: '0.00',
@@ -369,7 +375,8 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) return 'Requerido';
-                                    if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
+                                    final num = parseDecimal(value);
+                                    if (num == null || num < 0) return 'Inválido';
                                     return null;
                                   },
                                 ),
@@ -386,6 +393,7 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                       TextFormField(
                         controller: _descuentoController,
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [SingleDecimalInputFormatter()],
                         style: TextStyle(color: Colors.white, fontSize: 13.sp),
                         decoration: InputDecoration(
                           hintText: '0.00',
@@ -400,7 +408,8 @@ class _SalidaProductoFormScreenState extends ConsumerState<SalidaProductoFormScr
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Requerido';
-                          if (double.tryParse(value) == null || double.parse(value) < 0) return 'Inválido';
+                          final num = parseDecimal(value);
+                                    if (num == null || num < 0) return 'Inválido';
                           return null;
                         },
                       ),

@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../providers/productos_provider.dart';
 import '../../../categorias/presentation/providers/categorias_provider.dart';
 import '../../../ivas/presentation/providers/ivas_provider.dart';
@@ -67,8 +68,8 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
     _codExternoController = TextEditingController(text: widget.producto.codExterno);
     _codBarrasController = TextEditingController(text: widget.producto.codBarras);
     _precioController = TextEditingController(text: widget.producto.precio.toString());
-    _stockTotalController = TextEditingController(text: widget.producto.stockTotal.toString());
-    _stockMinimoController = TextEditingController(text: widget.producto.stockMinimo.toString());
+    _stockTotalController = TextEditingController(text: formatDecimal(widget.producto.stockTotal));
+    _stockMinimoController = TextEditingController(text: formatDecimal(widget.producto.stockMinimo));
     _tipoProductoIdSeleccionado = widget.producto.tipoProductoId;
     _unidadMedidaSeleccionada = widget.producto.unidadMedida;
     _ivaIdSeleccionado = widget.producto.ivaId;
@@ -282,8 +283,8 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
       codBarras: _codBarrasController.text.trim(),
       precio: double.parse(_precioController.text),
       unidadMedida: _unidadMedidaSeleccionada,
-      stockTotal: int.parse(_stockTotalController.text),
-      stockMinimo: int.parse(_stockMinimoController.text),
+      stockTotal: parseDecimal(_stockTotalController.text)!,
+      stockMinimo: parseDecimal(_stockMinimoController.text)!,
       manejaStock: _manejaStock,
       usaReceta: _usaReceta,
       activo: _activo,
@@ -672,15 +673,15 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
                         label: 'Stock Total *',
                         controller: _stockTotalController,
                         hint: '0',
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
+                          SingleDecimalInputFormatter(),
                         ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Requerido';
                           }
-                          final num = int.tryParse(value);
+                          final num = parseDecimal(value);
                           if (num == null || num < 0) {
                             return 'Inválido';
                           }
@@ -694,15 +695,15 @@ class _EditarProductoModalState extends ConsumerState<EditarProductoModal> {
                         label: 'Stock Mínimo *',
                         controller: _stockMinimoController,
                         hint: '0',
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
+                          SingleDecimalInputFormatter(),
                         ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Requerido';
                           }
-                          final num = int.tryParse(value);
+                          final num = parseDecimal(value);
                           if (num == null || num < 0) {
                             return 'Inválido';
                           }

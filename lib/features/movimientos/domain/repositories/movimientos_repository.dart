@@ -23,7 +23,7 @@ abstract class MovimientosRepository {
     required double costo,
     required double impuesto,
     required double descuentoUnidad,
-    required int cantidad,
+    required double cantidad,
     required String observacion,
     required String fecha,
   });

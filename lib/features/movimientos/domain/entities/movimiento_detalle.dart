@@ -10,7 +10,7 @@ class MovimientoDetalle {
   final double costo;
   final double impuesto;
   final double descuentoUnidad;
-  final int cantidad;
+  final double cantidad;
   final String observacion;
   final String fecha;
   final String createdAt;

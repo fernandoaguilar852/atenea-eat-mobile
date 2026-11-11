@@ -8,7 +8,7 @@ class RegistrarMovimientoRequestDto {
   final double costo;
   final double impuesto;
   final double descuentoUnidad;
-  final int cantidad;
+  final double cantidad;
   final String observacion;
   final String fecha; // formato: "2026-07-29T17:05" o "2026-01-10"
 

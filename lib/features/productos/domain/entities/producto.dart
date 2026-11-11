@@ -9,9 +9,9 @@ class Producto {
   final double precio;
   final String unidadMedida;
   final String sigla;
-  final int stockTotal;
-  final int stockReservado;
-  final int stockMinimo;
+  final double stockTotal;
+  final double stockReservado;
+  final double stockMinimo;
   final bool manejaStock;
   final bool usaReceta;
   final bool activo;

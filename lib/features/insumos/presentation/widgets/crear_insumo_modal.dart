@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/utils/single_decimal_input_formatter.dart';
 import '../providers/insumos_provider.dart';
 
 class CrearInsumoModal extends ConsumerStatefulWidget {
@@ -47,8 +48,8 @@ class _CrearInsumoModalState extends ConsumerState<CrearInsumoModal> {
     final error = await ref.read(insumosListProvider.notifier).createInsumo(
       nombre: _nombreController.text.trim(),
       unidadBase: _unidadBaseSeleccionada,
-      stockActual: double.parse(_stockActualController.text),
-      stockMinimo: double.parse(_stockMinimoController.text),
+      stockActual: parseDecimal(_stockActualController.text)!,
+      stockMinimo: parseDecimal(_stockMinimoController.text)!,
       costoPromedio: double.parse(_costoPromedioController.text),
       activo: _activo,
     );
@@ -237,7 +238,7 @@ class _CrearInsumoModalState extends ConsumerState<CrearInsumoModal> {
                             style: TextStyle(color: Colors.white, fontSize: 14.sp),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+                              SingleDecimalInputFormatter(),
                             ],
                             decoration: InputDecoration(
                               hintText: '0.00',
@@ -278,7 +279,7 @@ class _CrearInsumoModalState extends ConsumerState<CrearInsumoModal> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Requerido';
                               }
-                              final num = double.tryParse(value);
+                              final num = parseDecimal(value);
                               if (num == null || num < 0) {
                                 return 'Inválido';
                               }
@@ -306,7 +307,7 @@ class _CrearInsumoModalState extends ConsumerState<CrearInsumoModal> {
                             style: TextStyle(color: Colors.white, fontSize: 14.sp),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+                              SingleDecimalInputFormatter(),
                             ],
                             decoration: InputDecoration(
                               hintText: '0.00',
@@ -347,7 +348,7 @@ class _CrearInsumoModalState extends ConsumerState<CrearInsumoModal> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Requerido';
                               }
-                              final num = double.tryParse(value);
+                              final num = parseDecimal(value);
                               if (num == null || num < 0) {
                                 return 'Inválido';
                               }
