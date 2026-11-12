@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../constants/api_constants.dart';
@@ -19,17 +20,19 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Logger para debug
-  dio.interceptors.add(
-    PrettyDioLogger(
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: true,
-      responseBody: true,
-      error: true,
-      compact: true,
-    ),
-  );
+  // Logger solo en debug: en release expondría tokens y contraseñas en el log del sistema
+  if (kDebugMode) {
+    dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+        compact: true,
+      ),
+    );
+  }
 
   // Interceptor para agregar token y headers requeridos automáticamente
   dio.interceptors.add(
